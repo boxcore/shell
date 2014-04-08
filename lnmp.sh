@@ -481,6 +481,31 @@ function InstallPHP()
 	# ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=www --with-fpm-group=www --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash --with-mcrypt=/usr/local/libmcrytp --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets 
 	./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=root --with-fpm-group=root --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib  --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash  --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets # remove --with-mcrypt=/usr/local/libmcrytp
 	make && make install
+
+cp php.ini-development /usr/local/php/etc/php.ini
+cp sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm
+chmod +x /etc/init.d/php-fpm
+chkconfig --add php-fpm
+chkconfig php-fpm on
+
+cd /usr/local/php/etc/
+cp php-fpm.conf.default php-fpm.conf
+# vi php-fpm.conf 
+# //一般配置的依据如下
+# ===============================================
+# 内存小于4G服务器（值可逐级递减）：
+# 修改如下参数：
+# pm=dynamic
+# pm.max_children=40
+# pm.start_servers=10
+# pm.min_spare_servers=10
+# pm.max_spare_servers=40
+#  ******************************
+# 内存大于4G服务器（值可逐级递增）：
+# 修改如下参数：
+# pm=static
+# pm.max_children=100
+# ===============================================
 }
 
 
