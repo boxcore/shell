@@ -68,11 +68,11 @@ function ChooseRunUser()
     echo -n "Enter your choice (www or root): ";
     read runuser
 
-    if [ "$runuser" = "1" ]; then
+    if [ "$runuser" = "www" ]; then
         export LNMP_USER="www"
         groupadd www
         useradd -s /sbin/nologin -g www www
-    elif [ "$runuser" = "2" ]; then
+    elif [ "$runuser" = "root" ]; then
         export LNMP_USER="root"
     else
         echo "You input a wrong user name, please choose again!"
