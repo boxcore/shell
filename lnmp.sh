@@ -88,7 +88,8 @@ function InitInstall()
     cd $cur_dir
     cat /etc/issue
     uname -a
-    MemTotal=`free -m | grep Mem | awk '{print  $2}'`  
+    MemTotal=`free -m | grep Mem | awk '{print  $2}'`
+    export LNMP_MEM=$MemTotal
     echo -e "\n Memory is: ${MemTotal} MB "
     #Set timezone
     rm -rf /etc/localtime
@@ -118,6 +119,8 @@ function InitInstall()
     if [ -s /etc/selinux/config ]; then
     sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
     fi
+
+    yum -y update
 
     cp /etc/yum.conf /etc/yum.conf.lnmp
     sed -i 's:exclude=.*:exclude=:g' /etc/yum.conf
@@ -551,17 +554,17 @@ function InstallPHP5_3()
 	make && make install
 
     # setting php conf
-    cp php.ini-development /usr/local/php/etc/php.ini
+    cp -rf php.ini-development /usr/local/php/etc/php.ini
 
     # install  php-fpm service
-    cp sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm
+    cp -rf sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm
     chmod +x /etc/init.d/php-fpm
     chkconfig --add php-fpm
     chkconfig php-fpm on
 
 # setting php-fpm conf
-cd /usr/local/php/etc/
-cp php-fpm.conf.default php-fpm.conf
+cp -rf /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf
+
 # vi php-fpm.conf 
 # //一般配置的依据如下
 # ===============================================
@@ -578,9 +581,19 @@ cp php-fpm.conf.default php-fpm.conf
 # pm=static
 # pm.max_children=100
 # ===============================================
+if [ "$LNMP_MEM" -gt "3900" ]; then
+    sed -i 's:pm = dynamic:pm = static:g' /usr/local/php/etc/php-fpm.conf
+    sed -i 's:pm\.max\_children = 5:pm\.max\_children \= 100:g' /usr/local/php/etc/php-fpm.conf
+else
+    sed -i 's:pm\.max\_children = 5:pm\.max\_children \= 40:g' /usr/local/php/etc/php-fpm.conf
+    sed -i 's:pm\.start\_servers = 2:pm\.start\_servers \= 10:g' /usr/local/php/etc/php-fpm.conf
+    sed -i 's:pm\.min\_spare\_servers = 1:pm\.min\_spare\_servers \= 10:g' /usr/local/php/etc/php-fpm.conf
+    sed -i 's:pm\.max\_spare\_servers = 3:pm\.max\_spare\_servers \= 40:g' /usr/local/php/etc/php-fpm.conf
+fi
+
 }
 
-
+cd $cur_dir
 mkdir -pv logs
 ChooseDependentType
 ChooseRunUser
