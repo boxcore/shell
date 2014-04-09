@@ -23,72 +23,116 @@ echo "========================================================================="
 cur_dir=$(pwd)
 
 #set mysql root password
-	# echo "==========================="
-	# mysqlrootpwd="root"
-	# echo "Please input the root password of mysql:"
-	# read -p "(Default password: root):" mysqlrootpwd
-	# if [ "$mysqlrootpwd" = "" ]; then
-	# 	mysqlrootpwd="root"
-	# fi
-	# echo "==========================="
-	# echo "MySQL root password:$mysqlrootpwd"
-	# echo "==========================="
+	echo "==========================="
+	mysqlrootpwd="root"
+	echo "Please input the root password of mysql:"
+	read -p "(Default password: root):" mysqlrootpwd
+	if [ "$mysqlrootpwd" = "" ]; then
+		mysqlrootpwd="root"
+	fi
+	echo "==========================="
+	echo "MySQL root password:$mysqlrootpwd"
+	echo "==========================="
 
+# set install dependent method
+function ChooseDependentType()
+{
+    echo "========================================================================="
+    echo "You now have 2 options for your dependent setup."
+    echo ""
+    echo "1: Install Dependent By Yum"
+    echo "2: Install Dependent By Compiled Resource"
+    echo "========================================================================="
+    echo -n "Enter your choice (1 or 2): ";
+    read dependent_type
+
+    if [ "$dependent_type" = "1" ]; then
+        export LNMP_DTYPE="1"
+    elif [ "$dependent_type" = "2" ]; then
+        export LNMP_DTYPE="2"
+    else
+        echo "You input a wrong number, please choose again!"
+        ChooseDependentType
+    fi
+}
+
+# set run nginx and php user
+function ChooseRunUser()
+{
+    echo "========================================================================="
+    echo "Which User you want to run php and nginx?"
+    echo ""
+    echo "www: install for servers product"
+    echo "root: only u!"
+    echo "========================================================================="
+    echo -n "Enter your choice (www or root): ";
+    read runuser
+
+    if [ "$runuser" = "1" ]; then
+        export LNMP_USER="www"
+        groupadd www
+        useradd -s /sbin/nologin -g www www
+    elif [ "$runuser" = "2" ]; then
+        export LNMP_USER="root"
+    else
+        echo "You input a wrong user name, please choose again!"
+        ChooseRunUser
+    fi
+}
 
 function InitInstall()
 {
-	echo "================================================================="
-	echo " Remove Basic LNMP and donwload install basic lib "
-	echo "================================================================="
-	cd $cur_dir
-	cat /etc/issue
-	uname -a
-	MemTotal=`free -m | grep Mem | awk '{print  $2}'`  
-	echo -e "\n Memory is: ${MemTotal} MB "
-	#Set timezone
-	rm -rf /etc/localtime
-	ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    echo "================================================================="
+    echo " Remove Basic LNMP and donwload install basic lib "
+    echo "================================================================="
+    cd $cur_dir
+    cat /etc/issue
+    uname -a
+    MemTotal=`free -m | grep Mem | awk '{print  $2}'`  
+    echo -e "\n Memory is: ${MemTotal} MB "
+    #Set timezone
+    rm -rf /etc/localtime
+    ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-	yum install -y ntp
-	ntpdate -u pool.ntp.org
-	date
+    yum install -y ntp
+    ntpdate -u pool.ntp.org
+    date
 
-	rpm -qa|grep httpd
-	rpm -e httpd
-	rpm -qa|grep mysql
-	rpm -e mysql
-	rpm -qa|grep php
-	rpm -e php
+    rpm -qa|grep httpd
+    rpm -e httpd
+    rpm -qa|grep mysql
+    rpm -e mysql
+    rpm -qa|grep php
+    rpm -e php
 
-	yum -y remove httpd*
-	yum -y remove php*
-	yum -y remove mysql-server mysql
-	yum -y remove php-mysql
+    yum -y remove httpd*
+    yum -y remove php*
+    yum -y remove mysql-server mysql
+    yum -y remove php-mysql
 
-	yum -y install yum-fastestmirror
-	yum -y remove httpd
-	#yum -y update
+    yum -y install yum-fastestmirror
+    yum -y remove httpd
+    #yum -y update
 
-	#Disable SeLinux
-	if [ -s /etc/selinux/config ]; then
-	sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-	fi
+    #Disable SeLinux
+    if [ -s /etc/selinux/config ]; then
+    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+    fi
 
-	cp /etc/yum.conf /etc/yum.conf.lnmp
-	sed -i 's:exclude=.*:exclude=:g' /etc/yum.conf
+    cp /etc/yum.conf /etc/yum.conf.lnmp
+    sed -i 's:exclude=.*:exclude=:g' /etc/yum.conf
 
-	for packages in wget make gcc gcc-c++ ;
-	do yum -y install $packages; done
-	
-	# for packages in patch cmake gcc-g77 flex bison file libtool libtool-libs autoconf kernel kernel-devel kernel-headers libjpeg libjpeg-devel libpng libpng-devel libpng10 libpng10-devel gd gd-devel freetype freetype-devel libxml2 libxml2-devel zlib zlib-devel glib2 glib2-devel bzip2 bzip2-devel libevent libevent-devel curl curl-devel e2fsprogs e2fsprogs-devel krb5 krb5-devel libidn libidn-devel openssl openssl-devel vim-minimal nano fonts-chinese gettext gettext-devel gmp-devel pspell-devel unzip libcap automake compat* cpp cloog-ppl ppl glibc jpegsrc keyutils keyutils-libs-devel libcom_err-devel libgomp libiconv libjpeg* libmcrypt libmcrypt-devel libsepol-devel libselinux-devel libXpm* libstdc++-devel mhash mpfr pcre-devel  perl php-gd php-common python-devel fontconfig cmake apr* ncurses ncurses-devel;
-	# do yum -y install $packages; done
+    for packages in wget make gcc gcc-c++ openssl openssl-devel;
+    do yum -y install $packages; done
 
-	mv -f /etc/yum.conf.lnmp /etc/yum.conf
-	yum clean all
+    mv -f /etc/yum.conf.lnmp /etc/yum.conf
+    yum clean all
 
-	InstallAxel
+    InstallAxel
 
 }
+
+
 
 function InstallAxel()
 {
@@ -115,7 +159,7 @@ function InstallAxel()
 }
 
 
-function CheckAndDownloadLibFiles()
+function DownloadBasic()
 {
 	echo "============================check files=================================="
 	cd $cur_dir
@@ -148,167 +192,194 @@ function CheckAndDownloadLibFiles()
 	  axel -n 10 http://mirrors.boxcore.org/lnmp/conf.tar.gz
 	fi
 
-	if [ -s autoconf-2.69.tar.gz ]; then
-	  echo "autoconf-2.69.tar.gz [found]"
-	else
-	  echo "Error: autoconf-2.69.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/autoconf-2.69.tar.gz
-	fi
-
-	if [ -s fontconfig-2.11.0.tar.gz ]; then
-	  echo "fontconfig-2.11.0.tar.gz [found]"
-	else
-	  echo "Error: fontconfig-2.11.0.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/fontconfig-2.11.0.tar.gz
-	fi
-
-	if [ -s freetype-2.5.3.tar.gz ]; then
-	  echo "freetype-2.5.3.tar.gz [found]"
-	else
-	  echo "Error: freetype-2.5.3.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/freetype-2.5.3.tar.gz
-	fi
-
-	if [ -s gd-2.0.35.tar.gz ]; then
-	  echo "gd-2.0.35.tar.gz [found]"
-	else
-	  echo "Error: gd-2.0.35.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/gd-2.0.35.tar.gz
-	fi
-
-	if [ -s jpegsrc.v9a.tar.gz ]; then
-	  echo "jpegsrc.v9a.tar.gz [found]"
-	else
-	  echo "Error: jpegsrc.v9a.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/jpegsrc.v9a.tar.gz
-	fi
-
-	if [ -s libiconv-1.14.tar.gz ]; then
-	  echo "libiconv-1.14.tar.gz [found]"
-	else
-	  echo "Error: libiconv-1.14.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/libiconv-1.14.tar.gz
-	fi
-
-	if [ -s libmcrypt-2.5.8.tar.gz ]; then
-	  echo "libmcrypt-2.5.8.tar.gz [found]"
-	else
-	  echo "Error: libmcrypt-2.5.8.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/libmcrypt-2.5.8.tar.gz
-	fi
-
-	if [ -s libpng-1.6.2.tar.gz ]; then
-	  echo "libpng-1.6.2.tar.gz [found]"
-	else
-	  echo "Error: libpng-1.6.2.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/libpng-1.6.2.tar.gz
-	fi
-
-	if [ -s libxml2-2.9.1.tar.gz ]; then
-	  echo "libxml2-2.9.1.tar.gz [found]"
-	else
-	  echo "Error: libxml2-2.9.1.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/libxml2-2.9.1.tar.gz
-	fi
-
-	if [ -s mcrypt-2.6.8.tar.gz ]; then
-	  echo "mcrypt-2.6.8.tar.gz [found]"
-	else
-	  echo "Error: mcrypt-2.6.8.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/mcrypt-2.6.8.tar.gz
-	fi
-
-	if [ -s mhash-0.9.9.9.tar.gz ]; then
-	  echo "mhash-0.9.9.9.tar.gz [found]"
-	else
-	  echo "Error: mhash-0.9.9.9.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/mhash-0.9.9.9.tar.gz
-	fi
-
-	if [ -s zlib-1.2.5.tar.gz ]; then
-	  echo "zlib-1.2.5.tar.gz [found]"
-	else
-	  echo "Error: zlib-1.2.5.tar.gz not found!!!download now......"
-	  wget -c http://mirrors.boxcore.org/lnmp/zlib-1.2.5.tar.gz
-	fi
+    if [ -s pcre-8.34.tar.gz ]; then
+      echo "pcre-8.34.tar.gz [found]"
+    else
+      echo "Error: pcre-8.34.tar.gz not found!!!download now......"
+      wget -c http://mirrors.boxcore.org/lnmp/pcre-8.34.tar.gz
+    fi
 
 	echo "============================check files=================================="
 }
 
-# install apache depand
-function InstallLib()
+
+# download depandent
+function DownloadDependent()
 {
-cd $cur_dir
+    # if [ -s autoconf-2.69.tar.gz ]; then
+    #   echo "autoconf-2.69.tar.gz [found]"
+    # else
+    #   echo "Error: autoconf-2.69.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/autoconf-2.69.tar.gz
+    # fi
 
-# yum -y install python-devel
+    # if [ -s fontconfig-2.11.0.tar.gz ]; then
+    #   echo "fontconfig-2.11.0.tar.gz [found]"
+    # else
+    #   echo "Error: fontconfig-2.11.0.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/fontconfig-2.11.0.tar.gz
+    # fi
 
-# install zlib
-echo "================================================================================"
-echo "Install zlib"
-echo "================================================================================"
-	tar zxvf zlib-1.2.5.tar.gz
-	cd zlib-1.2.5
-	./configure
-	make && make install
-	cd ../
+    # if [ -s freetype-2.5.3.tar.gz ]; then
+    #   echo "freetype-2.5.3.tar.gz [found]"
+    # else
+    #   echo "Error: freetype-2.5.3.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/freetype-2.5.3.tar.gz
+    # fi
 
-# install libpng
-echo "================================================================================"
-echo "Install libpng"
-echo "================================================================================"
-	tar zxvf libpng-1.6.2.tar.gz
-	cd libpng-1.6.2
-	# cp scripts/makefile.linux ./makefile
-	# when have /usr/lcoal/zlib, then use it:
-	# sed -i 's:ZLIBLIB=../zlib:ZLIBLIB=/usr/local/zlib/lib:g' makefile
-	# sed -i 's:ZLIBINC=../zlib:ZLIBINC=/usr/local/zlib/include:g' makefile
-	./configure --prefix=/usr/local/libpng
-	make && make install
-	cd ../
+    if [ -s gd-2.0.35.tar.gz ]; then
+      echo "gd-2.0.35.tar.gz [found]"
+    else
+      echo "Error: gd-2.0.35.tar.gz not found!!!download now......"
+      wget -c http://mirrors.boxcore.org/lnmp/gd-2.0.35.tar.gz
+    fi
 
-# install jpegsrc
-echo "================================================================================"
-echo "Install jpegsrc"
-echo "================================================================================"
-	tar zxvf jpegsrc.v9a.tar.gz
-	cd jpeg-9a
-	mkdir -pv /usr/local/libjpeg/{,bin,lib,include,man/man1,man1}
-	./configure --prefix=/usr/local/libjpeg --enable-shared --enable-static
-	make && make install
-	cd ../
+    if [ -s jpegsrc.v9a.tar.gz ]; then
+      echo "jpegsrc.v9a.tar.gz [found]"
+    else
+      echo "Error: jpegsrc.v9a.tar.gz not found!!!download now......"
+      wget -c http://mirrors.boxcore.org/lnmp/jpegsrc.v9a.tar.gz
+    fi
 
-# install libxml2
-echo "================================================================================"
-echo "Install libxml2(must install python-devel depand)"
-echo "================================================================================"
-	yum -y install python-devel
-	tar zxvf libxml2-2.9.1.tar.gz
-	cd libxml2-2.9.1
-	./configure --prefix=/usr/local/libxml2
-	make && make install
-	cp xml2-config /usr/bin/
-	cd ../
+    # if [ -s libiconv-1.14.tar.gz ]; then
+    #   echo "libiconv-1.14.tar.gz [found]"
+    # else
+    #   echo "Error: libiconv-1.14.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/libiconv-1.14.tar.gz
+    # fi
 
-# install libmcrypt
-echo "================================================================================"
-echo "Install libmcrypt"
-echo "================================================================================"
-	tar zxvf libmcrypt-2.5.8.tar.gz
-	cd libmcrypt-2.5.8
-	./configure
-	make && make install
-	cd ../
+    # if [ -s libmcrypt-2.5.8.tar.gz ]; then
+    #   echo "libmcrypt-2.5.8.tar.gz [found]"
+    # else
+    #   echo "Error: libmcrypt-2.5.8.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/libmcrypt-2.5.8.tar.gz
+    # fi
 
-# install gd
-echo "================================================================================"
-echo "Install gd2"
-echo "================================================================================"
-	yum -y install freetype freetype-devel zlib-devel fontconfig fontconfig-devel  libXpm-devel
-	tar zxvf gd-2.0.35.tar.gz
-	cd gd-2.0.35
-	./configure --prefix=/usr/local/libgd --with-png=/usr/local/libpng --with-jpeg=/usr/local/libjpeg --enable-libxml2
-	make && make install
-	cd ../
+    if [ -s libpng-1.6.2.tar.gz ]; then
+      echo "libpng-1.6.2.tar.gz [found]"
+    else
+      echo "Error: libpng-1.6.2.tar.gz not found!!!download now......"
+      wget -c http://mirrors.boxcore.org/lnmp/libpng-1.6.2.tar.gz
+    fi
+
+    # if [ -s libxml2-2.9.1.tar.gz ]; then
+    #   echo "libxml2-2.9.1.tar.gz [found]"
+    # else
+    #   echo "Error: libxml2-2.9.1.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/libxml2-2.9.1.tar.gz
+    # fi
+
+    # if [ -s mcrypt-2.6.8.tar.gz ]; then
+    #   echo "mcrypt-2.6.8.tar.gz [found]"
+    # else
+    #   echo "Error: mcrypt-2.6.8.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/mcrypt-2.6.8.tar.gz
+    # fi
+
+    # if [ -s mhash-0.9.9.9.tar.gz ]; then
+    #   echo "mhash-0.9.9.9.tar.gz [found]"
+    # else
+    #   echo "Error: mhash-0.9.9.9.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/mhash-0.9.9.9.tar.gz
+    # fi
+
+    # if [ -s zlib-1.2.5.tar.gz ]; then
+    #   echo "zlib-1.2.5.tar.gz [found]"
+    # else
+    #   echo "Error: zlib-1.2.5.tar.gz not found!!!download now......"
+    #   wget -c http://mirrors.boxcore.org/lnmp/zlib-1.2.5.tar.gz
+    # fi
+}
+
+# install dependent by yum
+function InstallDependentByYum()
+{
+    # for packages in patch cmake gcc-g77 flex bison file libtool libtool-libs autoconf kernel kernel-devel kernel-headers libjpeg libjpeg-devel libpng libpng-devel libpng10 libpng10-devel gd gd-devel freetype freetype-devel libxml2 libxml2-devel zlib zlib-devel glib2 glib2-devel bzip2 bzip2-devel libevent libevent-devel curl curl-devel e2fsprogs e2fsprogs-devel krb5 krb5-devel libidn libidn-devel openssl openssl-devel vim-minimal nano fonts-chinese gettext gettext-devel gmp-devel pspell-devel unzip libcap automake compat* cpp cloog-ppl ppl glibc jpegsrc keyutils keyutils-libs-devel libcom_err-devel libgomp libiconv libjpeg* libmcrypt libmcrypt-devel libsepol-devel libselinux-devel libXpm* libstdc++-devel mhash mpfr pcre-devel  perl php-gd php-common python-devel fontconfig cmake apr* ncurses ncurses-devel;
+    # do yum -y install $packages; done
+
+    # for basic dependent
+    yum -y install glibc zlib zlib-devel libjpeg libjpeg-devel jpegsrc libpng libpng-devel libpng10 libpng10-devel gd gd-devel freetype freetype-devel libxml2 libxml2-devel glib2 glib2-devel bzip2 bzip2-devel libevent libevent-devel curl curl-devel libidn libidn-devel openssl openssl-devel
+    yum -y install unzip automake
+
+    # for php resource : http://koda.iteye.com/blog/420991
+    yum -y install autoconf automake libidn-devel curl curl-devel
+    yum -y install libmcrypt libmcrypt-devel mcrypt mhash
+    yum -y install libxml2 libxml2-devel
+
+}
+
+# install dependent
+function InstallDependentByCompile()
+{
+    cd $cur_dir
+
+    # install zlib
+    echo "================================================================================"
+    echo "Install zlib"
+    echo "================================================================================"
+    tar zxvf zlib-1.2.5.tar.gz
+    cd zlib-1.2.5
+    ./configure
+    make && make install
+    cd ../
+
+    # install libpng
+    echo "================================================================================"
+    echo "Install libpng"
+    echo "================================================================================"
+    tar zxvf libpng-1.6.2.tar.gz
+    cd libpng-1.6.2
+    # cp scripts/makefile.linux ./makefile
+    # when have /usr/lcoal/zlib, then use it:
+    # sed -i 's:ZLIBLIB=../zlib:ZLIBLIB=/usr/local/zlib/lib:g' makefile
+    # sed -i 's:ZLIBINC=../zlib:ZLIBINC=/usr/local/zlib/include:g' makefile
+    ./configure --prefix=/usr/local/libpng
+    make && make install
+    cd ../
+
+    # install jpegsrc
+    echo "================================================================================"
+    echo "Install jpegsrc"
+    echo "================================================================================"
+    tar zxvf jpegsrc.v9a.tar.gz
+    cd jpeg-9a
+    mkdir -pv /usr/local/libjpeg/{,bin,lib,include,man/man1,man1}
+    ./configure --prefix=/usr/local/libjpeg --enable-shared --enable-static
+    make && make install
+    cd ../
+
+    # install libxml2
+    echo "================================================================================"
+    echo "Install libxml2(must install python-devel depand)"
+    echo "================================================================================"
+    yum -y install python-devel
+    tar zxvf libxml2-2.9.1.tar.gz
+    cd libxml2-2.9.1
+    ./configure --prefix=/usr/local/libxml2
+    make && make install
+    cp xml2-config /usr/bin/
+    cd ../
+
+    # install libmcrypt
+    echo "================================================================================"
+    echo "Install libmcrypt"
+    echo "================================================================================"
+    tar zxvf libmcrypt-2.5.8.tar.gz
+    cd libmcrypt-2.5.8
+    ./configure
+    make && make install
+    cd ../
+
+    # install gd
+    echo "================================================================================"
+    echo "Install gd2"
+    echo "================================================================================"
+    yum -y install freetype freetype-devel zlib-devel fontconfig fontconfig-devel  libXpm-devel
+    tar zxvf gd-2.0.35.tar.gz
+    cd gd-2.0.35
+    ./configure --prefix=/usr/local/libgd --with-png=/usr/local/libpng --with-jpeg=/usr/local/libjpeg --enable-libxml2
+    make && make install
+    cd ../
 
 # conf lib
 echo "================================================================================"
@@ -324,7 +395,7 @@ ldconfig
 }
 
 # install MYSQL
-function InstallMYSQL()
+function InstallMYSQL5_5()
 {
 #######################################################################
 # refer : 	http://www.cnblogs.com/zz0412/archive/2013/05/21/mysql.html
@@ -338,7 +409,7 @@ echo "Install MySQL"
 echo "================================================================================"
 	
 # yum install mysql dependent packages
-yum -y install cmake openssl openssl-devel ncurses ncurses-devel
+yum -y install cmake ncurses ncurses-devel
 
 # Add mysql user and document
 mkdir -pv /var/mysql/data
@@ -415,79 +486,80 @@ echo "============================MySQL 5.5.35 install completed================
 # install Nginx
 function InstallNginx()
 {
-	echo "============================Install Nginx================================="
-	cd $cur_dir
-	groupadd www
-	useradd -s /sbin/nologin -g www www
+echo "============================Install Nginx================================="
+cd $cur_dir
 
-	tar zxvf pcre-8.34.tar.gz
-	cd pcre-8.34/
-	./configure
-	make && make install
-	cd ../
-	ldconfig
+# install pcre for nginx
+tar zxvf pcre-8.34.tar.gz
+cd pcre-8.34/
+./configure
+make && make install
+cd ../
+ldconfig
 
-	tar zxvf nginx-1.4.4.tar.gz
-	cd nginx-1.4.4/
-	# ./configure --user=www --group=www --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-http_gzip_static_module --with-ipv6 --with-openssl=/usr/include/openssl --with-pcre
-	./configure --user=root --group=root --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-http_gzip_static_module --with-ipv6 --with-pcre
-	# error:openssl/include/openssl/ssl.h] Error 2
-	# 安装openssl-devel后，configure时的参数去掉--with-openssl=/lib64/ --with-zlib=/usr/lib64/ --with-md5=/usr/lib64即可编译通过
-	make && make install
-	cd ../
+# install nginx
+tar zxvf nginx-1.4.4.tar.gz
+cd nginx-1.4.4/
+./configure --user=$LNMP_USER --group=$LNMP_USER --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-http_gzip_static_module --with-ipv6 --with-pcre
+make && make install
+cd ../
 
-	tar zxvf conf.tar.gz
-	rm -rf /etc/rc.d/init.d/nginx
-	cp -rf conf/nginx /etc/rc.d/init.d/nginx
-	chmod 775 /etc/rc.d/init.d/nginx
-	chkconfig nginx on
-	/etc/rc.d/init.d/nginx restart
-	service nginx restart
+# install nginx service shell
+tar zxvf conf.tar.gz
+rm -rf /etc/rc.d/init.d/nginx
+cp -rf conf/nginx /etc/rc.d/init.d/nginx
+chmod 775 /etc/rc.d/init.d/nginx
+chkconfig nginx on
+/etc/rc.d/init.d/nginx restart
+service nginx restart
 
-	ln -s /usr/local/nginx/sbin/nginx /usr/bin/nginx
+ln -s /usr/local/nginx/sbin/nginx /usr/bin/nginx
 
-	#rm -f /usr/local/nginx/conf/nginx.conf
-	#cd /root/lnmp
-	#cp conf/nginx.conf /usr/local/nginx/conf/nginx.conf
-	#cp conf/www-conf /home/www/conf
+#rm -f /usr/local/nginx/conf/nginx.conf
+#cd /root/lnmp
+#cp conf/nginx.conf /usr/local/nginx/conf/nginx.conf
+#cp conf/www-conf /home/www/conf
 
-	# cd $cur_dir
+if [[ "$LNMP_USER" = "www" ]]; then
+    cd $cur_dir
+    mkdir -p /home/www/{default,logs}
+    chmod +w /home/www/default
+    chmod 777 /home/www/logs
+    chown -R www:www /home/www
+fi
 
-	# mkdir -p /home/www/{default,logs}
-	# chmod +w /home/www/default
-	# chmod 777 /home/www/logs
-
-	# chown -R www:www /home/www
 }
 
-function InstallPHP()
+function InstallPHP5_3()
 {
-	yum -y install autoconf automake libidn-devel curl curl-devel
-
-	# resource : http://koda.iteye.com/blog/420991
-	yum -y install libmcrypt libmcrypt-devel mcrypt mhash
-
-	#
-	yum -y install libxml2 libxml2-devel
-
+    # install php basic dependent
 	yum -y install php-common php-cli php-mbstring php-gd php-ldap php-pear php-xmlrpc php-mcrypt
 
-	
+	# compiled php resource
 	cd $cur_dir
 	tar -zxf php-5.3.28.tar.gz
 	rm -rf /usr/local/php*
 	cd php-5.3.28
-	#yum list installed|grep mcrypt
-	# ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=www --with-fpm-group=www --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash --with-mcrypt=/usr/local/libmcrytp --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets 
-	./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=root --with-fpm-group=root --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib  --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash  --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets # remove --with-mcrypt=/usr/local/libmcrytp
+    if [ "$LNMP_DTYPE" = "1" ]; then
+        #if use yum dependent
+        ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=$LNMP_USER --with-fpm-group=$LNMP_USER --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib  --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash  --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets
+    else
+        #yum list installed|grep mcrypt
+        ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=$LNMP_USER --with-fpm-group=$LNMP_USER --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash --with-mcrypt=/usr/local/libmcrytp --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets
+    fi
+	
 	make && make install
 
-cp php.ini-development /usr/local/php/etc/php.ini
-cp sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm
-chmod +x /etc/init.d/php-fpm
-chkconfig --add php-fpm
-chkconfig php-fpm on
+    # setting php conf
+    cp php.ini-development /usr/local/php/etc/php.ini
 
+    # install  php-fpm service
+    cp sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm
+    chmod +x /etc/init.d/php-fpm
+    chkconfig --add php-fpm
+    chkconfig php-fpm on
+
+# setting php-fpm conf
 cd /usr/local/php/etc/
 cp php-fpm.conf.default php-fpm.conf
 # vi php-fpm.conf 
@@ -510,7 +582,17 @@ cp php-fpm.conf.default php-fpm.conf
 
 
 mkdir -pv logs
-# InitInstall 2>&1 | tee -a logs/InitInstall-`date +%Y%m%d`.log
-# CheckAndDownloadLibFiles 2>&1 | tee -a logs/CheckAndDownloadLibFiles-`date +%Y%m%d`.log
-# InstallMYSQL 2>&1 | tee -a logs/InstallMYSQL-`data +%Y%m%d`.log
-# InstallNginx 2>&1 | tee -a logs/InstallNginx-`date +%Y%m%d`.log
+ChooseDependentType
+ChooseRunUser
+
+InitInstall 2>&1 | tee -a logs/InitInstall-`date +%Y%m%d`.log
+DownloadBasic 2>&1 | tee -a logs/DownloadBasic-`date +%Y%m%d`.log
+if [[ "$LNMP_DTYPE" = "1" ]]; then
+    InstallDependentByYum 2>&1 | tee -a logs/InstallDependentByYum-`date +%Y%m%d`.log
+else
+    DownloadDependent 2>&1 | tee -a logs/DownloadDependent-`date +%Y%m%d`.log
+    InstallDependentByCompile 2>&1 | tee -a logs/InstallDependentByCompile-`date +%Y%m%d`.log
+fi
+InstallMYSQL5_5 2>&1 | tee -a logs/InstallMYSQL5_5-`data +%Y%m%d`.log
+InstallNginx 2>&1 | tee -a logs/InstallNginx-`date +%Y%m%d`.log
+InstallPHP5_3 2>&1 | tee -a logs/InstallPHP5_3-`date +%Y%m%d`.log
