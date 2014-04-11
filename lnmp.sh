@@ -13,36 +13,36 @@ if [ $(id -u) != "0" ]; then
     echo "Error: You must be root to run this script, please use root to install lnmp"
     exit 1
 fi
-
+hr="========================================================================="
 clear
-echo "========================================================================="
+echo $hr
 echo "Install LNMP v1.0 for CentOS"
 echo "A tool to auto-compile & install Nginx+MySQL+PHP on Linux For more information please visit http://www.boxcore.org/"
-echo "========================================================================="
+echo $hr
 # close var cur_dir now
 cur_dir=$(pwd)
 
 #set mysql root password
-	echo "==========================="
-	mysqlrootpwd="root"
-	echo "Please input the root password of mysql:"
-	read -p "(Default password: root):" mysqlrootpwd
-	if [ "$mysqlrootpwd" = "" ]; then
-		mysqlrootpwd="root"
-	fi
-	echo "==========================="
-	echo "MySQL root password:$mysqlrootpwd"
-	echo "==========================="
+    echo $hr
+    mysqlrootpwd="root"
+    echo "Please input the root password of mysql:"
+    read -p "(Default password: root):" mysqlrootpwd
+    if [ "$mysqlrootpwd" = "" ]; then
+        mysqlrootpwd="root"
+    fi
+    echo $hr
+    echo "MySQL root password:$mysqlrootpwd"
+    echo $hr
 
 # set install dependent method
 function ChooseDependentType()
 {
-    echo "========================================================================="
+    echo $hr
     echo "You now have 2 options for your dependent setup."
     echo ""
     echo "1: Install Dependent By Yum"
     echo "2: Install Dependent By Compiled Resource"
-    echo "========================================================================="
+    echo $hr
     echo -n "Enter your choice (1 or 2): ";
     read dependent_type
 
@@ -59,12 +59,12 @@ function ChooseDependentType()
 # set run nginx and php user
 function ChooseRunUser()
 {
-    echo "========================================================================="
+    echo $hr
     echo "Which User you want to run php and nginx?"
     echo ""
     echo "www: install for servers product"
     echo "root: only u!"
-    echo "========================================================================="
+    echo $hr
     echo -n "Enter your choice (www or root): ";
     read runuser
 
@@ -82,9 +82,9 @@ function ChooseRunUser()
 
 function InitInstall()
 {
-    echo "================================================================="
+    echo $hr
     echo " Remove Basic LNMP and donwload install basic lib "
-    echo "================================================================="
+    echo $hr
     cd $cur_dir
     cat /etc/issue
     uname -a
@@ -139,61 +139,63 @@ function InitInstall()
 
 function InstallAxel()
 {
-	echo "================================================================================"
-	echo " Install axel-1.0b "
-	echo "================================================================================"
-	if [ -f /usr/local/bin/axel ]; then
-		echo "You already install axel!"
-	else
-		cd $cur_dir
-		if [ -s axel-1.0b.tar.gz ]; then
-		  echo "axel-1.0b.tar.gz [found]"
-		else
-		  echo "Error: axel-1.0b.tar.gz not found!!!download now......"
-		  wget http://mirrors.boxcore.org/lnmp/axel-1.0b.tar.gz
-		fi
-		tar zxvf axel-1.0b.tar.gz
-		cd axel-1.0b
-		./configure
-		make && make install
-		cd ../
-	fi
-	echo "================================================================================"
+    echo $hr
+    echo " Install axel-1.0b "
+    echo $hr
+    if [ -f /usr/local/bin/axel ]; then
+        echo "You already install axel!"
+    else
+        cd $cur_dir
+        if [ -s axel-1.0b.tar.gz ]; then
+          echo "axel-1.0b.tar.gz [found]"
+        else
+          echo "Error: axel-1.0b.tar.gz not found!!!download now......"
+          wget http://mirrors.boxcore.org/lnmp/axel-1.0b.tar.gz
+        fi
+        tar zxvf axel-1.0b.tar.gz
+        cd axel-1.0b
+        ./configure
+        make && make install
+        cd ../
+    fi
+    echo $hr
 }
 
 
 function DownloadBasic()
 {
-	echo "============================check files=================================="
-	cd $cur_dir
+    echo $hr
+    echo "check files..."
+    echo $hr
+    cd $cur_dir
 
-	if [ -s php-5.3.28.tar.gz ]; then
-	  echo "php-5.3.28.tar.gz [found]"
-	else
-	  echo "Error: php-5.3.28.tar.gz not found!!!download now......"
-	  axel -n 10 http://mirrors.boxcore.org/lnmp/php-5.3.28.tar.gz
-	fi
+    if [ -s php-5.3.28.tar.gz ]; then
+      echo "php-5.3.28.tar.gz [found]"
+    else
+      echo "Error: php-5.3.28.tar.gz not found!!!download now......"
+      axel -n 10 http://mirrors.boxcore.org/lnmp/php-5.3.28.tar.gz
+    fi
 
-	if [ -s mysql-5.5.35.tar.gz ]; then
-	  echo "mysql-5.5.35.tar.gz [found]"
-	else
-	  echo "Error: mysql-5.5.35.tar.gz not found!!!download now......"
-	  axel -n 10 http://mirrors.boxcore.org/lnmp/mysql-5.5.35.tar.gz
-	fi
+    if [ -s mysql-5.5.35.tar.gz ]; then
+      echo "mysql-5.5.35.tar.gz [found]"
+    else
+      echo "Error: mysql-5.5.35.tar.gz not found!!!download now......"
+      axel -n 10 http://mirrors.boxcore.org/lnmp/mysql-5.5.35.tar.gz
+    fi
 
-	if [ -s nginx-1.4.4.tar.gz ]; then
-	  echo "nginx-1.4.4.tar.gz [found]"
-	  else
-	  echo "Error: nginx-1.4.4.tar.gz not found!!!download now......"
-	  axel -n 10 http://mirrors.boxcore.org/lnmp/nginx-1.4.4.tar.gz
-	fi
+    if [ -s nginx-1.4.4.tar.gz ]; then
+      echo "nginx-1.4.4.tar.gz [found]"
+      else
+      echo "Error: nginx-1.4.4.tar.gz not found!!!download now......"
+      axel -n 10 http://mirrors.boxcore.org/lnmp/nginx-1.4.4.tar.gz
+    fi
 
-	if [ -s conf.tar.gz ]; then
-	  echo "conf.tar.gz [found]"
-	  else
-	  echo "Error: conf.tar.gz not found!!!download now......"
-	  axel -n 10 http://mirrors.boxcore.org/lnmp/conf.tar.gz
-	fi
+    if [ -s conf.tar.gz ]; then
+      echo "conf.tar.gz [found]"
+      else
+      echo "Error: conf.tar.gz not found!!!download now......"
+      axel -n 10 http://mirrors.boxcore.org/lnmp/conf.tar.gz
+    fi
 
     if [ -s pcre-8.34.tar.gz ]; then
       echo "pcre-8.34.tar.gz [found]"
@@ -202,7 +204,7 @@ function DownloadBasic()
       wget -c http://mirrors.boxcore.org/lnmp/pcre-8.34.tar.gz
     fi
 
-	echo "============================check files=================================="
+    echo $hr
 }
 
 
@@ -317,9 +319,9 @@ function InstallDependentByCompile()
     cd $cur_dir
 
     # install zlib
-    echo "================================================================================"
+    echo $hr
     echo "Install zlib"
-    echo "================================================================================"
+    echo $hr
     tar zxvf zlib-1.2.5.tar.gz
     cd zlib-1.2.5
     ./configure
@@ -327,9 +329,9 @@ function InstallDependentByCompile()
     cd ../
 
     # install libpng
-    echo "================================================================================"
+    echo $hr
     echo "Install libpng"
-    echo "================================================================================"
+    echo $hr
     tar zxvf libpng-1.6.2.tar.gz
     cd libpng-1.6.2
     # cp scripts/makefile.linux ./makefile
@@ -341,9 +343,9 @@ function InstallDependentByCompile()
     cd ../
 
     # install jpegsrc
-    echo "================================================================================"
+    echo $hr
     echo "Install jpegsrc"
-    echo "================================================================================"
+    echo $hr
     tar zxvf jpegsrc.v9a.tar.gz
     cd jpeg-9a
     mkdir -pv /usr/local/libjpeg/{,bin,lib,include,man/man1,man1}
@@ -352,9 +354,9 @@ function InstallDependentByCompile()
     cd ../
 
     # install libxml2
-    echo "================================================================================"
+    echo $hr
     echo "Install libxml2(must install python-devel depand)"
-    echo "================================================================================"
+    echo $hr
     yum -y install python-devel
     tar zxvf libxml2-2.9.1.tar.gz
     cd libxml2-2.9.1
@@ -364,9 +366,9 @@ function InstallDependentByCompile()
     cd ../
 
     # install libmcrypt
-    echo "================================================================================"
+    echo $hr
     echo "Install libmcrypt"
-    echo "================================================================================"
+    echo $hr
     tar zxvf libmcrypt-2.5.8.tar.gz
     cd libmcrypt-2.5.8
     ./configure
@@ -374,9 +376,9 @@ function InstallDependentByCompile()
     cd ../
 
     # install gd
-    echo "================================================================================"
+    echo $hr
     echo "Install gd2"
-    echo "================================================================================"
+    echo $hr
     yum -y install freetype freetype-devel zlib-devel fontconfig fontconfig-devel  libXpm-devel
     tar zxvf gd-2.0.35.tar.gz
     cd gd-2.0.35
@@ -385,9 +387,9 @@ function InstallDependentByCompile()
     cd ../
 
 # conf lib
-echo "================================================================================"
+echo $hr
 echo "conf lib for ldconfig"
-echo "================================================================================"
+echo $hr
 cat >>/etc/ld.so.conf<<eof
 /usr/local/zlib/lib
 /usr/local/libpng/lib
@@ -401,16 +403,16 @@ ldconfig
 function InstallMYSQL5_5()
 {
 #######################################################################
-# refer : 	http://www.cnblogs.com/zz0412/archive/2013/05/21/mysql.html
-# info:		set mysql db dir: '/var/mysql/data' and run by sid: 'mysql'
-# author :	boxcore
-# version: 	v0.1 stable
-# date: 	2014-04-09
+# refer :   http://www.cnblogs.com/zz0412/archive/2013/05/21/mysql.html
+# info:     set mysql db dir: '/var/mysql/data' and run by sid: 'mysql'
+# author :  boxcore
+# version:  v0.1 stable
+# date:     2014-04-09
 #######################################################################
-echo "================================================================================"
+echo $hr
 echo "Install MySQL"
-echo "================================================================================"
-	
+echo $hr
+    
 # yum install mysql dependent packages
 yum -y install cmake ncurses ncurses-devel
 
@@ -487,7 +489,7 @@ echo "============================MySQL 5.5.35 install completed================
 
 
 # install Nginx
-function InstallNginx()
+function InstallNginx_1_4()
 {
 echo "============================Install Nginx================================="
 cd $cur_dir
@@ -525,7 +527,8 @@ ln -s /usr/local/nginx/sbin/nginx /usr/bin/nginx
 
 if [[ "$LNMP_USER" = "www" ]]; then
     cd $cur_dir
-    mkdir -p /home/www/{default,logs}
+    mkdir -p /home/www/{default,logs,logs/nginx,logs/php}
+    touch /home/www/logs/nginx/error.log
     chmod +w /home/www/default
     chmod 777 /home/www/logs
     chown -R www:www /home/www
@@ -536,13 +539,13 @@ fi
 function InstallPHP5_3()
 {
     # install php basic dependent
-	yum -y install php-common php-cli php-mbstring php-gd php-ldap php-pear php-xmlrpc php-mcrypt
+    yum -y install php-common php-cli php-mbstring php-gd php-ldap php-pear php-xmlrpc php-mcrypt
 
-	# compiled php resource
-	cd $cur_dir
-	tar -zxf php-5.3.28.tar.gz
-	rm -rf /usr/local/php*
-	cd php-5.3.28
+    # compiled php resource
+    cd $cur_dir
+    tar -zxf php-5.3.28.tar.gz
+    rm -rf /usr/local/php*
+    cd php-5.3.28
     if [ "$LNMP_DTYPE" = "1" ]; then
         #if use yum dependent
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=$LNMP_USER --with-fpm-group=$LNMP_USER --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib  --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash  --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets
@@ -550,11 +553,12 @@ function InstallPHP5_3()
         #yum list installed|grep mcrypt
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --enable-fpm --with-fpm-user=$LNMP_USER --with-fpm-group=$LNMP_USER --with-mysql=/usr/local/mysql --with-mysql-sock --with-pdo-mysql=/usr/local/mysql/bin/mysql --with-zlib --with-libxml-dir --with-curl --with-xmlrpc --with-openssl --with-mhash --with-mcrypt=/usr/local/libmcrytp --with-pear --enable-mbstring --enable-sysvshm --enable-zip  --enable-soap --enable-sockets
     fi
-	
-	make && make install
+    
+    make && make install
 
     # setting php conf
     cp -rf php.ini-development /usr/local/php/etc/php.ini
+    sed -i "s#\;date\.timezone \=#date\.timezone \= \"Asia\/Chongqing\"#g" /usr/local/php/etc/php.ini
 
     # install  php-fpm service
     cp -rf sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm
@@ -607,5 +611,5 @@ else
     InstallDependentByCompile 2>&1 | tee -a logs/InstallDependentByCompile-`date +%Y%m%d`.log
 fi
 InstallMYSQL5_5 2>&1 | tee -a logs/InstallMYSQL5_5-`data +%Y%m%d`.log
-InstallNginx 2>&1 | tee -a logs/InstallNginx-`date +%Y%m%d`.log
+InstallNginx_1_4 2>&1 | tee -a logs/InstallNginx_1_4-`date +%Y%m%d`.log
 InstallPHP5_3 2>&1 | tee -a logs/InstallPHP5_3-`date +%Y%m%d`.log
