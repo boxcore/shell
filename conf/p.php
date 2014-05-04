@@ -143,7 +143,7 @@ elseif ($_POST['act'] == '邮件检测')
 	$mailRe = "邮件发送检测结果：发送";
 	if($_SERVER['SERVER_PORT']==80){$mailContent = "http://".$_SERVER['SERVER_NAME'].($_SERVER['PHP_SELF'] ? $_SERVER['PHP_SELF'] : $_SERVER['SCRIPT_NAME']);}
 	else{$mailContent = "http://".$_SERVER['SERVER_NAME'].":".$_SERVER['SERVER_PORT'].($_SERVER['PHP_SELF'] ? $_SERVER['PHP_SELF'] : $_SERVER['SCRIPT_NAME']);}
-	$mailRe .= (false !== @mail($_POST["mailAdd"], $mailContent, "This is a test mail!\n\nhttp://lnmp.org")) ? "完成":"失败";
+	$mailRe .= (false !== @mail($_POST["mailAdd"], $mailContent, "This is a test mail!\n\nhttp://lnmp.boxcore.org")) ? "完成":"失败";
 }	
 	
 // 检测函数支持
@@ -515,7 +515,7 @@ if ($_GET['act'] == "rt")
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>PHP探针 for LNMP一键安装包</title>
+<title>PHP探针 for LNMP.BOXCORE一键安装包</title>
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <!-- Powered by: Yahei.Net -->
@@ -623,7 +623,7 @@ function displayData(dataJSON)
 <div id="page">
     <div id="header">
         <h1>PHP探针</h1>
-        <div id="lnmplink">for <a href="http://lnmp.org" target="_blank">LNMP一键安装包</a> <a href="http://bbs.vpser.net/forum-25-1.html" target="_blank">技术支持论坛</a></div>
+        <div id="lnmplink">for <a href="http://lnmp.boxcore.org" target="_blank">LNMP一键安装包</a></div>
     </div>
 
 <!--服务器相关参数-->
@@ -1160,7 +1160,7 @@ else
 <a id="bottom"></a>
 
 <div id="footer">
-&copy; 2012 <a href="http://lnmp.org" target="_blank">LNMP一键安装包</a><br />This Prober was based on Yahei Prober.<br />
+&copy; 2012 <a href="http://lnmp.boxcore.org" target="_blank">LNMP一键安装包</a><br />This Prober was based on Yahei Prober.<br />
 <?php $run_time = sprintf('%0.4f', microtime_float() - $time_start);?>
 Processed in <?php echo $run_time?> seconds. <?php echo memory_usage();?> memory usage.
 
