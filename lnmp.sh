@@ -21,6 +21,9 @@ echo "A tool to auto-compile & install Nginx+MySQL+PHP on Linux For more informa
 echo $hr
 # close var cur_dir now
 cur_dir=$(pwd)
+mkdir src
+src_dir=$cur_dir/src
+cd src_dir
 
 #set mysql root password
     echo $hr
@@ -85,7 +88,7 @@ function InitInstall()
     echo $hr
     echo " Remove Basic LNMP and donwload install basic lib "
     echo $hr
-    cd $cur_dir
+    cd $src_dir
     cat /etc/issue
     uname -a
     MemTotal=`free -m | grep Mem | awk '{print  $2}'`
@@ -145,7 +148,7 @@ function InstallAxel()
     if [ -f /usr/local/bin/axel ]; then
         echo "You already install axel!"
     else
-        cd $cur_dir
+        cd $src_dir
         if [ -s axel-1.0b.tar.gz ]; then
           echo "axel-1.0b.tar.gz [found]"
         else
@@ -167,7 +170,7 @@ function DownloadBasic()
     echo $hr
     echo "check files..."
     echo $hr
-    cd $cur_dir
+    cd $src_dir
 
     if [ -s php-5.3.28.tar.gz ]; then
       echo "php-5.3.28.tar.gz [found]"
@@ -316,7 +319,7 @@ function InstallDependentByYum()
 # install dependent
 function InstallDependentByCompile()
 {
-    cd $cur_dir
+    cd $src_dir
 
     # install zlib
     echo $hr
@@ -423,7 +426,7 @@ useradd -g mysql -r -s /bin/false -M -d /var/mysql/data mysql
 chown mysql:mysql /var/mysql/data
 
 # Compile and install mysql
-cd $cur_dir
+cd $src_dir
 tar -zxf mysql-5.5.35.tar.gz
 cd mysql-5.5.35
 cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql -DMYSQL_DATADIR=/var/mysql/data -DSYSCONFDIR=/etc -DWITH_MYISAM_STORAGE_ENGINE=1 -DWITH_INNOBASE_STORAGE_ENGINE=1 -DWITH_ARCHIVE_STORAGE_ENGINE=1 -DWITH_BLACKHOLE_STORAGE_ENGINE=1 -DENABLED_LOCAL_INFILE=1 -DDEFAULT_CHARSET=utf8 -DDEFAULT_COLLATION=utf8_general_ci -DEXTRA_CHARSETS=utf8 -DMYSQL_TCP_PORT=3306 -DMYSQL_USER=mysql -DMYSQL_UNIX_ADDR=/tmp/mysql.sock -DWITH_SSL=yes -DWITH_PARTITION_STORAGE_ENGINE=1 -DINSTALL_PLUGINDIR=/usr/local/mysql/plugin -DWITH_DEBUG=0
@@ -492,7 +495,7 @@ echo "============================MySQL 5.5.35 install completed================
 function InstallNginx_1_4()
 {
 echo "============================Install Nginx================================="
-cd $cur_dir
+cd $src_dir
 
 # install pcre for nginx
 tar zxvf pcre-8.34.tar.gz
@@ -526,7 +529,7 @@ ln -s /usr/local/nginx/sbin/nginx /usr/bin/nginx
 #cp conf/www-conf /home/www/conf
 
 if [[ "$LNMP_USER" = "www" ]]; then
-    cd $cur_dir
+    cd $src_dir
     mkdir -p /home/www/{default,logs,logs/nginx,logs/php}
     touch /home/www/logs/nginx/error.log
     chmod +w /home/www/default
@@ -542,7 +545,7 @@ function InstallPHP5_3()
     yum -y install php-common php-cli php-mbstring php-gd php-ldap php-pear php-xmlrpc php-mcrypt php-pdo
 
     # compiled php resource
-    cd $cur_dir
+    cd $src_dir
     tar -zxf php-5.3.28.tar.gz
     rm -rf /usr/local/php*
     cd php-5.3.28
@@ -598,7 +601,7 @@ fi
 
 }
 
-cd $cur_dir
+cd $src_dir
 mkdir -pv logs
 ChooseDependentType
 ChooseRunUser
