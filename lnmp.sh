@@ -572,7 +572,9 @@ function InstallPHP5_3()
 
 # setting php-fpm conf
 cp -rf /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf
-
+if [ -s /usr/lib/php/modules/gd.so ]; then
+    sed -i '/;extension=php_zip.dll/a\extension=/usr/lib/php/modules/gd.so' /usr/local/php/etc/php.ini
+fi
 # vi php-fpm.conf 
 # //一般配置的依据如下
 # ===============================================
@@ -599,6 +601,10 @@ else
     sed -i 's:pm\.max\_spare\_servers = 3:pm\.max\_spare\_servers \= 40:g' /usr/local/php/etc/php-fpm.conf
 fi
 
+# modify nginx.conf for php
+sed -i "s:#user\s*nobody;:user $LNMP_USER $LNMP_USER:g" /usr/local/nginx/conf/nginx.conf
+sed -i '/# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000/a\location \~ \\.php\$ \{\nroot           html;\nfastcgi_pass   127.0.0.1:9000;\nfastcgi_index  index.php;\nfastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\nfastcgi_param PATH_INFO $fastcgi_path_info;\nfastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;\nfastcgi_connect_timeout 60;\nfastcgi_send_timeout    180;\nfastcgi_read_timeout    180;\nfastcgi_buffer_size 128k;\nfastcgi_buffers 4 256k;\nfastcgi_busy_buffers_size 256k;\nfastcgi_temp_file_write_size 256k;\nfastcgi_intercept_errors on;\ninclude        fastcgi_params;\n\}\n' /usr/local/nginx/conf/nginx.conf
+
 }
 
 cd $src_dir
@@ -614,6 +620,6 @@ else
     DownloadDependent 2>&1 | tee -a logs/DownloadDependent-`date +%Y%m%d`.log
     InstallDependentByCompile 2>&1 | tee -a logs/InstallDependentByCompile-`date +%Y%m%d`.log
 fi
-InstallMYSQL5_5 2>&1 | tee -a logs/InstallMYSQL5_5-`data +%Y%m%d`.log
+InstallMYSQL5_5 2>&1 | tee -a logs/InstallMYSQL5_5-`date +%Y%m%d`.log
 InstallNginx_1_4 2>&1 | tee -a logs/InstallNginx_1_4-`date +%Y%m%d`.log
 InstallPHP5_3 2>&1 | tee -a logs/InstallPHP5_3-`date +%Y%m%d`.log
