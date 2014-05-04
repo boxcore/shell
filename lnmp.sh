@@ -602,9 +602,13 @@ else
 fi
 
 # modify nginx.conf for php
+cp /usr/local/nginx/conf/nginx.conf /usr/local/nginx/conf/nginx.conf.org.bak
 sed -i "s:#user\s*nobody;:user $LNMP_USER $LNMP_USER:g" /usr/local/nginx/conf/nginx.conf
 sed -i '/# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000/a\location \~ \\.php\$ \{\nroot           html;\nfastcgi_pass   127.0.0.1:9000;\nfastcgi_index  index.php;\nfastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\nfastcgi_param PATH_INFO $fastcgi_path_info;\nfastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;\nfastcgi_connect_timeout 60;\nfastcgi_send_timeout    180;\nfastcgi_read_timeout    180;\nfastcgi_buffer_size 128k;\nfastcgi_buffers 4 256k;\nfastcgi_busy_buffers_size 256k;\nfastcgi_temp_file_write_size 256k;\nfastcgi_intercept_errors on;\ninclude        fastcgi_params;\n\}\n' /usr/local/nginx/conf/nginx.conf
 
+cd $cur_dir
+cp -rf conf/p.php /usr/local/nginx/html/p.php
+cp -rf conf/phpinfo.php /usr/local/nginx/html/phpinfo.php
 }
 
 cd $src_dir
