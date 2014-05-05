@@ -179,8 +179,8 @@ done
 if [ "$access_yn" == 'n' ]; then
 	N_log="access_log off;"
 else
-	N_log="access_log /home/logs/${domain}_nginx.log combined;"
-	echo -e "You access log file=\033[32m/home/logs/${domain}_nginx.log\033[0m"
+	N_log="access_log /home/www/logs/${domain}_nginx.log combined;"
+	echo -e "You access log file=\033[32m/home/www/logs/${domain}_nginx.log\033[0m"
 fi
 }
 
@@ -203,9 +203,25 @@ $anti_hotlinking
 `echo -e $ngx_pagespeed`
 location ~ .*\.(php|php5)?$  {
 	#fastcgi_pass remote_php_ip:9000;
-	fastcgi_pass unix:/dev/shm/php-cgi.sock;
-	fastcgi_index index.php;
-	include fastcgi.conf;
+	#fastcgi_pass unix:/dev/shm/php-cgi.sock;
+	#fastcgi_index index.php;
+	#include fastcgi.conf;
+	fastcgi_split_path_info ^(.+\.php)(.*)$;
+
+    fastcgi_pass 127.0.0.1:9000;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_param PATH_INFO $fastcgi_path_info;
+    fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
+    fastcgi_connect_timeout 60;
+    fastcgi_send_timeout    180;
+    fastcgi_read_timeout    180;
+    fastcgi_buffer_size 128k;
+    fastcgi_buffers 4 256k;
+    fastcgi_busy_buffers_size 256k;
+    fastcgi_temp_file_write_size 256k;
+    fastcgi_intercept_errors on;
+    include     fastcgi_params; 
 	}
 
 location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|flv|ico)$ {
@@ -243,8 +259,8 @@ echo -e "`printf "%-32s" "Directory of:"`\033[32m$vhostdir\033[0m"
 
 if [ -d "$web_install_dir" ];then
 	Input_domain
-	#Ngx_pagespeed
-	#Nginx_anti_hotlinking
+	Ngx_pagespeed
+	Nginx_anti_hotlinking
 	Nginx_rewrite
 	Nginx_log
 	Create_nginx_conf
