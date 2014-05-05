@@ -12,11 +12,7 @@ hr="========================================================================="
 clear
 echo $hr
 
-cur_dir=$(pwd)
-mkdir src
-src_dir=$cur_dir/src
-#cd src_dir
-web_install_dir = /usr/local/nginx
+web_install_dir=/usr/local/nginx
 
 Input_domain()
 {
@@ -75,7 +71,7 @@ if [ -z "$vhostdir" ]; then
 fi
 echo
 echo "Create Virtul Host directory......"
-mkdir -p $vhostdir
+mkdir -pv $vhostdir
 echo "set permissions of Virtual Host directory......"
 chown -R www.www $vhostdir
 }
@@ -130,7 +126,7 @@ if [ "$anti_hotlinking_yn" == 'y' ];then
 	else
 		domain_allow_all=$domain_allow
 	fi
-	anti_hotlinking=$(echo -e "location ~ .*\.(wma|wmv|asf|mp3|mmf|zip|rar|jpg|gif|png|swf|flv)$ {\n\tvalid_referers none blocked $domain_allow_all;\n\tif (\$invalid_referer) {\n\t\t#rewrite ^/ http://www.linuxeye.com/403.html;\n\t\treturn 403;\n\t\t}\n\t}")
+	anti_hotlinking=$(echo -e "location ~ .*\.(wma|wmv|asf|mp3|mmf|zip|rar|jpg|gif|png|swf|flv)$ {\n\tvalid_referers none blocked $domain_allow_all;\n\tif (\$invalid_referer) {\n\t\t#rewrite ^/ http://www.boxcore.org/403.html;\n\t\treturn 403;\n\t\t}\n\t}")
 else
 	anti_hotlinking=
 fi
