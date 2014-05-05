@@ -609,6 +609,10 @@ sed -i '/# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000/a\
 cd $cur_dir
 cp -rf conf/p.php /usr/local/nginx/html/p.php
 cp -rf conf/phpinfo.php /usr/local/nginx/html/phpinfo.php
+
+# create nginx vhost dir
+mkdir -pv /usr/local/nginx/conf/vhost
+sed -i '/# another virtual host using mix of IP-, name-, and port-based configuration/a\include vhost/*.conf;' /usr/local/nginx/conf/nginx.conf
 }
 
 cd $src_dir
