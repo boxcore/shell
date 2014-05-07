@@ -191,7 +191,7 @@ cat > $web_install_dir/conf/vhost/$domain.conf << EOF
 server {
 listen 80;
 server_name $domain$moredomainame;
-$N_log
+#$N_log
 index index.html index.htm index.jsp index.php;
 #include $rewrite.conf;
 root $vhostdir;
@@ -202,12 +202,6 @@ if ( \$query_string ~* ".*[\;'\<\>].*" ){
 $anti_hotlinking
 `echo -e $ngx_pagespeed`
 location ~ .*\.(php|php5)?\$  {
-	#fastcgi_pass remote_php_ip:9000;
-	#fastcgi_pass unix:/dev/shm/php-cgi.sock;
-	#fastcgi_index index.php;
-	#include fastcgi.conf;
-	fastcgi_split_path_info ^(.+\.php)(.*)$;
-
     fastcgi_pass 127.0.0.1:9000;
     fastcgi_index index.php;
     fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
@@ -244,7 +238,8 @@ else
 	echo -e "Create virtualhost ... \033[31m[FAILED]\033[0m"
 	exit 1
 fi
-
+echo 111
+exit 1
 cat > $vhostdir/index.html << EOF
 <!doctype html>
 <html lang="en">
