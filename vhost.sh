@@ -193,7 +193,7 @@ listen 80;
 server_name $domain$moredomainame;
 $N_log
 index index.html index.htm index.jsp index.php;
-include $rewrite.conf;
+#include $rewrite.conf;
 root $vhostdir;
 #error_page 404 /404.html;
 if ( \$query_string ~* ".*[\;'\<\>].*" ){
@@ -201,7 +201,7 @@ if ( \$query_string ~* ".*[\;'\<\>].*" ){
 	}
 $anti_hotlinking
 `echo -e $ngx_pagespeed`
-location ~ .*\.(php|php5)?$  {
+location ~ .*\.(php|php5)?\$  {
 	#fastcgi_pass remote_php_ip:9000;
 	#fastcgi_pass unix:/dev/shm/php-cgi.sock;
 	#fastcgi_index index.php;
@@ -210,9 +210,9 @@ location ~ .*\.(php|php5)?$  {
 
     fastcgi_pass 127.0.0.1:9000;
     fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    fastcgi_param PATH_INFO $fastcgi_path_info;
-    fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_param PATH_INFO \$fastcgi_path_info;
+    fastcgi_param PATH_TRANSLATED \$document_root\$fastcgi_path_info;
     fastcgi_connect_timeout 60;
     fastcgi_send_timeout    180;
     fastcgi_read_timeout    180;
@@ -224,11 +224,11 @@ location ~ .*\.(php|php5)?$  {
     include     fastcgi_params; 
 	}
 
-location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|flv|ico)$ {
+location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|flv|ico)\$ {
 	expires 30d;
 	}
 
-location ~ .*\.(js|css)?$ {
+location ~ .*\.(js|css)?\$ {
 	expires 7d;
 	}
 }
@@ -244,6 +244,21 @@ else
 	echo -e "Create virtualhost ... \033[31m[FAILED]\033[0m"
 	exit 1
 fi
+
+cat > $vhostdir/index.html << EOF
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>您的站点$domain已经建好 || power by lnmp.boxcore.org</title>
+</head>
+<body>
+    <h1>您的站点$domain已经建好!</h1>
+    <p>欢迎使用<strong>LNMP.BOXCORE</strong>构建站点，如您在使用过程中遇到任何问题请访问<a target="_blank" href="http://lnmp.boxcore.org/feedback.php">lnmp.boxcore.org/feedback.php</a>反馈</p>
+</body>
+</html>
+EOF
+
 
 printf "
 #######################################################################
