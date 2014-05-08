@@ -158,7 +158,7 @@ SET_SVN_POST_COMMIT()
             read -p "Type svn web dir: " svn_web_dir
             if [ "`echo $svn_web_dir | grep '^/home/www/\w*'`" ]; then
                 if [ -s "$svn_web_dir" ]; then
-                    mv -rf $svn_web_dir $svn_web_dir-bak
+                    #mv -rf $svn_web_dir $svn_web_dir-bak
                     CHECKOUT_WEB_DIR
                 else
                     CHECKOUT_WEB_DIR
@@ -184,7 +184,8 @@ chmod 777 $svn_dir/hooks/post-commit
 CHECKOUT_WEB_DIR()
 {
     mkdir -pv $svn_web_dir
-    ip=`/sbin/ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6|awk '{print $2}'|tr -d "addr:"`
+    #ip=`/sbin/ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6|awk '{print $2}'|tr -d "addr:"`
+    ip="127.0.0.1"
     /usr/bin/svn checkout svn://$ip/$svn_name $svn_web_dir --username $svn_username --password $svn_password
     chown -R www:www $svn_web_dir
 }
