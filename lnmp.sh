@@ -40,47 +40,51 @@ cd src_dir
 # set install dependent method
 function ChooseDependentType()
 {
-    echo $hr
-    echo "You now have 2 options for your dependent setup."
-    echo ""
-    echo "1: Install Dependent By Yum"
-    echo "2: Install Dependent By Compiled Resource"
-    echo $hr
-    echo -n "Enter your choice (1 or 2): ";
-    read dependent_type
+    # echo $hr
+    # echo "You now have 2 options for your dependent setup."
+    # echo ""
+    # echo "1: Install Dependent By Yum"
+    # echo "2: Install Dependent By Compiled Resource"
+    # echo $hr
+    # echo -n "Enter your choice (1 or 2): ";
+    # read dependent_type
 
-    if [ "$dependent_type" = "1" ]; then
-        export LNMP_DTYPE="1"
-    elif [ "$dependent_type" = "2" ]; then
-        export LNMP_DTYPE="2"
-    else
-        echo "You input a wrong number, please choose again!"
-        ChooseDependentType
-    fi
+    # if [ "$dependent_type" = "1" ]; then
+    #     export LNMP_DTYPE="1"
+    # elif [ "$dependent_type" = "2" ]; then
+    #     export LNMP_DTYPE="2"
+    # else
+    #     echo "You input a wrong number, please choose again!"
+    #     ChooseDependentType
+    # fi
+
+    export LNMP_DTYPE="1"
 }
 
 # set run nginx and php user
 function ChooseRunUser()
 {
-    echo $hr
-    echo "Which User you want to run php and nginx?"
-    echo ""
-    echo "www: install for servers product"
-    echo "root: only u!"
-    echo $hr
-    echo -n "Enter your choice (www or root): ";
-    read runuser
+    # echo $hr
+    # echo "Which User you want to run php and nginx?"
+    # echo ""
+    # echo "www: install for servers product"
+    # echo "root: only u!"
+    # echo $hr
+    # echo -n "Enter your choice (www or root): ";
+    # read runuser
 
-    if [ "$runuser" = "www" ]; then
-        export LNMP_USER="www"
-        groupadd www
-        useradd -s /sbin/nologin -g www www
-    elif [ "$runuser" = "root" ]; then
-        export LNMP_USER="root"
-    else
-        echo "You input a wrong user name, please choose again!"
-        ChooseRunUser
-    fi
+    # if [ "$runuser" = "www" ]; then
+    #     export LNMP_USER="www"
+    #     groupadd www
+    #     useradd -s /sbin/nologin -g www www
+    # elif [ "$runuser" = "root" ]; then
+    #     export LNMP_USER="root"
+    # else
+    #     echo "You input a wrong user name, please choose again!"
+    #     ChooseRunUser
+    # fi
+
+    export LNMP_USER="www"
 }
 
 function InitInstall()
@@ -542,7 +546,7 @@ fi
 function InstallPHP5_3()
 {
     # install php basic dependent
-    yum -y install php-common php-cli php-mbstring php-gd php-ldap php-pear php-xmlrpc php-mcrypt php-pdo
+    yum -y install php-common php-cli php-mbstring php-gd php-ldap php-pear php-xmlrpc php-mcrypt php-mysql php-pdo php-xml
 
     # compiled php resource
     cd $src_dir
