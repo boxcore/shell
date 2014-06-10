@@ -85,6 +85,8 @@ function ChooseRunUser()
     # fi
 
     export LNMP_USER="www"
+    groupadd www
+    useradd -s /sbin/nologin -g www www
 }
 
 function InitInstall()
