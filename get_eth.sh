@@ -7,7 +7,7 @@ cdate=$(date '+%Y%m%d')
 num=$(ifconfig -a | grep eth | wc -l)
 echo "ethX=" $num >> ethX
 
-for ((n=1;n<${num};n++))
+for ((n=0;n<${num};n++))
     do
  
        if [ -e /etc/sysconfig/network-scripts/ifcfg-eth${n} ] ; then
