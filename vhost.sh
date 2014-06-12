@@ -238,8 +238,7 @@ else
 	echo -e "Create virtualhost ... \033[31m[FAILED]\033[0m"
 	exit 1
 fi
-echo 111
-exit 1
+
 cat > $vhostdir/index.html << EOF
 <!doctype html>
 <html lang="en">
