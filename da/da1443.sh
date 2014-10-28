@@ -29,7 +29,7 @@ if [ -s da1443.tar.gz ]; then
    echo "da1443.tar.gz [found]"
 else
    echo "Error: da1443.tar.gz not found!!!download now......"
-   wget -q -O da1443.tar.gz http://mirrors.boxcore.org/da1443.tar.gz
+   wget -q -O da1443.tar.gz http://mirrors.mianfeibang.cn/da1443.tar.gz
 fi
 tar xvf da1443.tar.gz -C /usr/local/directadmin
 
