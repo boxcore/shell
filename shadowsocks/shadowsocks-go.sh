@@ -4,17 +4,17 @@ export PATH
 #===============================================================================================
 #   System Required:  CentOS, Debian, Ubuntu
 #   Description:  One click Install Shadowsocks(go)
-#   Author: Teddysun <i@teddysun.com>
-#   Intro:  http://teddysun.com/392.html
+#   Author: Teddysun <boxcore@live.com>
+#   Intro:  http://boxcore.org
 #===============================================================================================
 
 clear
 echo ""
 echo "#############################################################"
 echo "# One click Install Shadowsocks(go)"
-echo "# Intro: http://teddysun.com/392.html"
+echo "# Intro: http://boxcore.org"
 echo "#"
-echo "# Author: Teddysun <i@teddysun.com>"
+echo "# Author: BoxCore <boxcore@live.com>"
 echo "#"
 echo "#############################################################"
 echo ""
@@ -83,9 +83,9 @@ fi
 function pre_install(){
     # Set shadowsocks-go config password
     echo "Please input password for shadowsocks-go:"
-    read -p "(Default password: teddysun.com):" shadowsockspwd
+    read -p "(Default password: boxcore.org):" shadowsockspwd
     if [ "$shadowsockspwd" = "" ]; then
-        shadowsockspwd="teddysun.com"
+        shadowsockspwd="boxcore.org"
     fi
     echo "password:$shadowsockspwd"
     echo "####################################"
@@ -153,12 +153,12 @@ function download_files(){
 
     # Download start script
     if [ "$OS" == 'CentOS' ];then
-        if ! wget --no-check-certificate -O shadowsocks-go https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks-go; then
+        if ! wget --no-check-certificate -O shadowsocks-go https://raw.githubusercontent.com/boxcore/shell/master/shadowsocks/shadowsocks-go; then
             echo "Failed to download shadowsocks-go auto start script!"
             exit 1
         fi
     else
-        if ! wget --no-check-certificate -O shadowsocks-go https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks-go-debian; then
+        if ! wget --no-check-certificate -O shadowsocks-go https://raw.githubusercontent.com/boxcore/shell/master/shadowsocks/shadowsocks-go-debian; then
             echo "Failed to download shadowsocks-go auto start script!"
             exit 1
         fi
@@ -173,8 +173,8 @@ function config_shadowsocks(){
     cat > /etc/shadowsocks/config.json<<-EOF
 {
     "server":"0.0.0.0",
-    "server_port":8989,
-    "local_port":1080,
+    "server_port":8428,
+    "local_port":5566,
     "password":"${shadowsockspwd}",
     "method":"aes-256-cfb",
     "timeout":600
@@ -187,13 +187,13 @@ function iptables_set(){
     echo "iptables start setting..."
     /sbin/service iptables status 1>/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        /etc/init.d/iptables status | grep '8989' | grep 'ACCEPT' >/dev/null 2>&1
+        /etc/init.d/iptables status | grep '8428' | grep 'ACCEPT' >/dev/null 2>&1
         if [ $? -ne 0 ]; then
-            /sbin/iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 8989 -j ACCEPT
+            /sbin/iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 8428 -j ACCEPT
             /etc/init.d/iptables save
             /etc/init.d/iptables restart
         else
-            echo "port 8989 has been set up."
+            echo "port 8428 has been set up."
         fi
     else
         echo "iptables looks like shutdown, please manually set it if necessary."
@@ -232,12 +232,12 @@ function install_go(){
     echo ""
     echo "Congratulations, shadowsocks-go install completed!"
     echo -e "Your Server IP: \033[41;37m ${IP} \033[0m"
-    echo -e "Your Server Port: \033[41;37m 8989 \033[0m"
+    echo -e "Your Server Port: \033[41;37m 8428 \033[0m"
     echo -e "Your Password: \033[41;37m ${shadowsockspwd} \033[0m"
-    echo -e "Your Local Port: \033[41;37m 1080 \033[0m"
+    echo -e "Your Local Port: \033[41;37m 5566 \033[0m"
     echo -e "Your Encryption Method: \033[41;37m aes-256-cfb \033[0m"
     echo ""
-    echo "Welcome to visit:http://teddysun.com/392.html"
+    echo "Welcome to visit:http://boxcore.org"
     echo "Enjoy it!"
     echo ""
     exit 0
