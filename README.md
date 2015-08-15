@@ -14,3 +14,7 @@ boxcore个人linux工具箱, 用于便捷管理linux服务器. 本工具均在ce
 - svn.sh 添加svn仓库, 可选择是否添加钩子
 - update_resource.sh 修改yum原
 - vhost.sh lnmp添加虚拟主机
+
+Modify History
+------------------
+- 2015-08-16 remove x
