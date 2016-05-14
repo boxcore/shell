@@ -1,0 +1,329 @@
+#!/bin/sh
+# iptables, by Technion
+# $Id: iptables,v 1.31 2002/08/01 04:50:25 technion Exp $
+# chkconfig: 2345 08 80
+# description: Script for setting IPTABLES rules
+# processname: iptables
+
+#VERSION=2
+
+BLOCK_LIST=/root/blocked_ips.txt
+
+
+
+# Is this script to be run on Red Hat Linux?  If not, set to "NO"
+REDHAT="YES"
+
+# Network information you will need to adjust
+INTERNALIF="eth0"
+
+# Pathnames
+DMESG="/bin/dmesg"
+IPTABLES="/sbin/iptables"
+MODPROBE="/sbin/modprobe"
+
+
+# This is a batch of Red Hat Linux-specific commands
+# that enable a user to call the script with a start/stop/restart
+# argument.
+if [ X"$REDHAT" = X"YES" ]; then
+	. /etc/rc.d/init.d/functions
+	case "$1" in
+		stop)
+			action "Shutting down firewall:" echo
+			$IPTABLES -F
+			$IPTABLES -P FORWARD DROP
+			exit 0
+			;;
+		status)
+			echo "The status command is not supported for iptables"
+			exit 0
+			;;
+		restart|reload)
+			$0 stop
+			exec $0 start
+			;;
+		start)
+			action "Starting Firewall:" echo
+                        ;;
+                *)
+                        echo "Usage: firewall (start|stop|restart)"
+                        exit 1
+        esac
+fi
+
+
+################################################################
+#Insert modules- should be done automatically if needed
+dmesg -n 1 #Kill copyright display on module load
+/sbin/modprobe ip_tables
+/sbin/modprobe iptable_filter
+/sbin/modprobe ip_conntrack
+/sbin/modprobe ip_conntrack_ftp
+#
+## Flush everything, start from scratch
+#
+# Incoming packets from the outside network
+$IPTABLES -F INPUT
+# Outgoing packets from the internal network
+$IPTABLES -F OUTPUT
+# Forwarding/masquerading
+$IPTABLES -F FORWARD
+#Nat table
+$IPTABLES -t nat -F
+##Setup sysctl controls which affect tcp/ip
+ 
+#
+#Disabling IP Spoofing attacks.
+echo 2 > /proc/sys/net/ipv4/conf/all/rp_filter
+
+#Don't respond to broadcast pings
+echo "1" > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+#Defragment all Packets
+#Default now
+
+#Enable forwarding
+echo 1 >/proc/sys/net/ipv4/ip_forward
+
+#Block source routing
+echo 0 >/proc/sys/net/ipv4/conf/all/accept_source_route
+
+#Kill timestamps.  These have been the subject of a recent bugtraq thread
+echo 0 > /proc/sys/net/ipv4/tcp_timestamps
+
+#Enable SYN Cookies
+echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+
+#Kill redirects
+echo 0 >/proc/sys/net/ipv4/conf/all/accept_redirects
+
+#Enable bad error message protection
+echo 1 > /proc/sys/net/ipv4/icmp_ignore_bogus_error_responses
+
+#Allow dynamic ip addresses
+echo "1" > /proc/sys/net/ipv4/ip_dynaddr
+
+#Log martians (packets with impossible addresses)
+#RiVaL said that certain NICs don't like this.  Comment out if necessary.
+echo 1 >/proc/sys/net/ipv4/conf/all/log_martians
+
+#Set out local port range
+echo "32768 61000" >/proc/sys/net/ipv4/ip_local_port_range
+
+#Reduce DoS'ing ability by reducing timeouts
+echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
+echo 1800 > /proc/sys/net/ipv4/tcp_keepalive_time
+echo 1 > /proc/sys/net/ipv4/tcp_window_scaling
+echo 0 > /proc/sys/net/ipv4/tcp_sack
+echo 1280 > /proc/sys/net/ipv4/tcp_max_syn_backlog
+
+
+##Set basic rules
+#
+#Note that unlike ipchains, rules passing through a FORWARD chain do NOT
+#also have to pass through an INPUT chain.
+
+#Kill ANY stupid packets, including
+#-Packets that are too short to have a full ICMP/UDP/TCP header
+#- TCP and UDP packets with zero (illegal) source and destination ports
+#-Illegal combinations of TCP flags
+#-Zero-length (illegal) or over-length TCP and IP options, 
+#	or options after the END-OF-OPTIONS option
+#-Fragments of illegal length or offset (e.g., Ping of Death).
+#Above list ripped from http://www.linux-mag.com/2000-01/bestdefense_02.html
+
+#This has been found to be a little buggy.  Removed for now.
+#$IPTABLES -A INPUT -m unclean -j DROP
+#$IPTABLES -A FORWARD -m unclean -j DROP
+
+#Kill invalid packets (illegal combinations of flags)
+$IPTABLES -A INPUT -m state --state INVALID -j DROP
+$IPTABLES -A FORWARD -m state --state INVALID -j DROP
+
+# Allow all connections on the internal interface
+#
+
+$IPTABLES -A INPUT -i lo -j ACCEPT
+
+#Kill connections to the local interface from the outside world.
+$IPTABLES -A INPUT -d 127.0.0.0/8 -j REJECT
+
+b()
+{
+	if [ "$1" = "" ]; then
+		echo "blocking blank value.";
+		return;
+	fi
+
+	$IPTABLES -A INPUT -s $1 -j DROP
+}
+
+
+if [ -s $BLOCK_LIST ]; then
+	for i in `cat $BLOCK_LIST | cut -d= -f1`; do
+	{
+		b $i
+	};
+	done;
+fi
+
+
+
+#Manual Blocking
+#examples, block 1.2.3.4
+#b 1.2.3.4
+
+#blck 1.2.x.x  (entire range starting with 1.2.)
+#b 1.2.0.0/16
+
+
+
+#drop all ICMP
+$IPTABLES -A INPUT -p icmp -j DROP
+
+##Allow established connections
+#Unlike ipchains, we don't have to go through the business of allowing
+#a local port range- just allow all connections already established.
+
+$IPTABLES -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+#From here on, we're dealing with connection attempts.
+#The -m limit is a DoS protection on connects
+#First we allow a certain amount of connections per second
+#DROP the rest (so we don't DoS ourself with rejections)
+#We don't limit normal packets (!syn) by allowing the rest
+##Basic services.  Uncomment to allow in.
+# ftp-data
+$IPTABLES -A INPUT -p tcp  --dport 20 -j ACCEPT
+# ftp
+$IPTABLES -A INPUT -p tcp  --dport 21 -j ACCEPT
+# ssh 
+$IPTABLES -A INPUT -p tcp --dport 22 -j ACCEPT
+#telnet
+#$IPTABLES -A INPUT -p tcp --dport 23 -j ACCEPT
+#DirectAdmin
+$IPTABLES -A INPUT -p tcp --dport 2222 -j ACCEPT
+
+# smtp  One per second limt -burst rate of ten
+$IPTABLES -A INPUT -p tcp --dport 25 --syn -m limit --limit 1/s \
+        --limit-burst 10 -j ACCEPT 
+$IPTABLES -A INPUT -p tcp --dport 25 --syn -j DROP 
+$IPTABLES -A INPUT -p tcp --dport 25 -j ACCEPT
+$IPTABLES -A INPUT -p tcp --dport 465 -j ACCEPT
+$IPTABLES -A INPUT -p tcp --dport 587 -j ACCEPT
+
+
+# DNS   
+$IPTABLES -A INPUT -p tcp --dport 53 -j ACCEPT
+$IPTABLES -A INPUT -p udp --dport 53 -j ACCEPT
+# http 
+$IPTABLES -A INPUT -p tcp --dport 80 -j ACCEPT
+# POP-3
+$IPTABLES -A INPUT -p tcp --dport 110 -j ACCEPT
+$IPTABLES -A INPUT -p tcp --dport 995 -j ACCEPT
+# identd
+$IPTABLES -A INPUT -p tcp --dport 113 -j ACCEPT
+#imapd
+$IPTABLES -A INPUT -p tcp --dport 143 -j ACCEPT
+$IPTABLES -A INPUT -p tcp --dport 993 -j ACCEPT
+# https
+$IPTABLES -A INPUT -p tcp --dport 443 -j ACCEPT
+# mysql
+$IPTABLES -A INPUT -p tcp --dport 3306 -j ACCEPT
+$IPTABLES -A INPUT -p udp --dport 3306 -j ACCEPT
+
+#
+##Some ports should be denied and logged.
+$IPTABLES -A INPUT -p tcp --dport 1433 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: MSSQL " 
+
+$IPTABLES -A INPUT -p tcp --dport 1433 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 6670 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: Deepthrt " 
+$IPTABLES -A INPUT -p tcp --dport 6670 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 6711 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: Sub7 " 
+$IPTABLES -A INPUT -p tcp --dport 6711 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 6712 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: Sub7 " 
+$IPTABLES -A INPUT -p tcp --dport 6712 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 6713 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: Sub7 " 
+$IPTABLES -A INPUT -p tcp --dport 6713 -j DROP
+
+$IPTABLES -A INPUT -p tcp --dport 12345 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: Netbus " 
+$IPTABLES -A INPUT -p tcp --dport 12345 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 12346 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: Netbus " 
+$IPTABLES -A INPUT -p tcp --dport 12346 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 20034 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: Netbus " 
+$IPTABLES -A INPUT -p tcp --dport 20034 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 31337 -m limit -j LOG \
+                          --log-prefix "Firewalled packet: BO " 
+$IPTABLES -A INPUT -p tcp --dport 31337 -j DROP
+$IPTABLES -A INPUT -p tcp --dport 6000  -m limit -j LOG \
+                          --log-prefix "Firewalled packet: XWin "
+$IPTABLES -A INPUT -p tcp --dport 6000  -j DROP
+
+
+#Traceroutes depend on finding a rejected port.  DROP the ones it uses
+
+$IPTABLES -A INPUT -p udp --dport 33434:33523 -j DROP
+
+#Don't log ident because it gets hit all the time eg connecting to an irc server
+$IPTABLES -A INPUT -p tcp --dport 113 -j REJECT
+
+#Don't log igmp.  Some people get too many of these
+$IPTABLES -A INPUT -p igmp -j REJECT
+
+#Don't log web or ssl because people surfing for long times lose connection
+#tracking and cause the system to create a new one, flooding logs.
+$IPTABLES -A INPUT -p tcp --dport 80 -j REJECT
+$IPTABLES -A INPUT -p tcp --dport 443 -j REJECT
+
+##Catch all rules.
+#iptables reverts to these if it hasn't matched any of the previous rules.
+#Log.  There's no point logging noise.  There's too much of it.
+#Just log connection requests
+$IPTABLES -A INPUT -p tcp --syn -m limit --limit 5/minute -j LOG  \
+	--log-prefix "Firewalled packet:"
+$IPTABLES -A FORWARD -p tcp --syn -m limit --limit 5/minute -j LOG \
+	--log-prefix "Firewalled packet:"
+#Reject
+$IPTABLES -A INPUT -p tcp -j REJECT --reject-with tcp-reset
+$IPTABLES -A INPUT -p all -j DROP
+
+$IPTABLES -A FORWARD -p tcp -j REJECT --reject-with tcp-reset
+$IPTABLES -A FORWARD -p all -j DROP  
+
+
+
+
+
+
+
+#OUTPUT packets:
+#Drop irc packets
+$IPTABLES -A OUTPUT -p tcp --destination-port 6660:6669 -j DROP
+$IPTABLES -A OUTPUT -p tcp --destination-port 7000 -j DROP
+
+#SMTP output, only allow mail to send remotely.
+$IPTABLES -A OUTPUT -m owner --uid-owner mail -p tcp --dport 25 -j ACCEPT
+$IPTABLES -A OUTPUT -m owner --uid-owner root -p tcp --dport 25 -j ACCEPT
+$IPTABLES -A OUTPUT -p tcp -d 127.0.0.1 --dport 25 -j ACCEPT
+$IPTABLES -A OUTPUT -p tcp --dport 25 -j REJECT
+
+
+#Accept it anyway if it's only output
+$IPTABLES -A OUTPUT -j ACCEPT
+
+#Masquerade internal connections going out.
+#$IPTABLES -A POSTROUTING -t nat -o $EXTERNALIF -j MASQUERADE
+
+
+exit 0
+
+
