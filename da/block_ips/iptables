@@ -200,10 +200,15 @@ $IPTABLES -A INPUT -p tcp  --dport 20 -j ACCEPT
 $IPTABLES -A INPUT -p tcp  --dport 21 -j ACCEPT
 # ssh 
 $IPTABLES -A INPUT -p tcp --dport 22 -j ACCEPT
+# my-ssh-port 
+$IPTABLES -A INPUT -p tcp --dport 22 -j ACCEPT
 #telnet
 #$IPTABLES -A INPUT -p tcp --dport 23 -j ACCEPT
 #DirectAdmin
 $IPTABLES -A INPUT -p tcp --dport 2222 -j ACCEPT
+
+#my shadowsocks port
+$IPTABLES -A INPUT -p tcp --dport 8248 -j ACCEPT
 
 # smtp  One per second limt -burst rate of ten
 $IPTABLES -A INPUT -p tcp --dport 25 --syn -m limit --limit 1/s \
