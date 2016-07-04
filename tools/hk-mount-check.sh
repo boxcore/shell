@@ -11,6 +11,8 @@ else
         lvchange -a y /dev/mapper/Xvdbgroup-xvdb1
         mount /dev/mapper/Xvdbgroup-xvdb1 /home
         resize2fs -p /dev/mapper/Xvdbgroup-xvdb1
+    else
+        echo 'already mount!'
     fi
 
 fi
