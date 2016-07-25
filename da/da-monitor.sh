@@ -69,3 +69,16 @@ else
 echo "named shell is running"
 
 fi
+
+# check shadowsocks
+shadowsocks=`ps -ef|grep shadowsocks | grep "\-c" | awk -F " " '{print $2}'`
+if [ -z "$shadowsocks" ]
+then
+/sbin/service shadowsocks restart
+echo "shadowsocks start done"
+
+else
+echo "shadowsocks shell is running"
+
+fi
+
