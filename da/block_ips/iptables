@@ -201,7 +201,7 @@ $IPTABLES -A INPUT -p tcp  --dport 21 -j ACCEPT
 # ssh 
 $IPTABLES -A INPUT -p tcp --dport 22 -j ACCEPT
 # my-ssh-port 
-$IPTABLES -A INPUT -p tcp --dport 22 -j ACCEPT
+$IPTABLES -A INPUT -p tcp --dport 10086 -j ACCEPT
 #telnet
 #$IPTABLES -A INPUT -p tcp --dport 23 -j ACCEPT
 #DirectAdmin
@@ -288,6 +288,7 @@ $IPTABLES -A INPUT -p igmp -j REJECT
 #tracking and cause the system to create a new one, flooding logs.
 $IPTABLES -A INPUT -p tcp --dport 8428 -j REJECT
 $IPTABLES -A INPUT -p tcp --dport 80 -j REJECT
+$IPTABLES -A INPUT -p tcp --dport 10086 -j REJECT
 $IPTABLES -A INPUT -p tcp --dport 443 -j REJECT
 
 ##Catch all rules.
