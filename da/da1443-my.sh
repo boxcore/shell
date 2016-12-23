@@ -158,8 +158,8 @@ SCRIPTS_PATH=$DA_PATH/scripts
 PACKAGES=$SCRIPTS_PATH/packages
 SETUP=$SCRIPTS_PATH/setup.txt
 
-#SERVER=http://files.directadmin.com/services
-SERVER=http://static-source.qiniudn.com/services
+SERVER=http://files.directadmin.com/services
+# SERVER=http://static-source.qiniudn.com/services
 
 if [ $OS = "FreeBSD" ]; then
 	OS_VER=`uname -r | cut -d- -f1`
@@ -432,11 +432,13 @@ fi
 while [ "$yesno" = "n" ];
 do
 {
-	echo -n "Please enter your Client ID : ";
-	read CID;
+	# echo -n "Please enter your Client ID : ";
+	# read CID;
+	CID='boxcore';
 
-	echo -n "Please enter your License ID : ";
-	read LID;
+	# echo -n "Please enter your License ID : ";
+	# read LID;
+	LID='boxcore';
 
 	echo -e "Please enter your hostname \(server.domain.com\)";
 	echo "It must be a Fully Qualified Domain Name";
@@ -444,14 +446,15 @@ do
 	echo "eg. don't use domain.com. Use server.domain.com instead.";
 	echo "Do not enter http:// or www";
 	echo "";
-	echo -n "Enter your hostname (FQDN) : ";
-	read HOST;
+	# echo -n "Enter your hostname (FQDN) : ";
+	# read HOST;
+	HOST='hk.laikansha.com';
 
 	echo "Client ID:  $CID";
 	echo "License ID: $LID";
 	echo "Hostname: $HOST";
-	echo -n "Is this correct? (y,n) : ";
-	read yesno;
+	# echo -n "Is this correct? (y,n) : ";
+	yesno='y';
 }
 done;
 
@@ -711,8 +714,8 @@ if [ $CMD_LINE -eq 0 ]; then
                 # 	$BUILD set_fastest;
 			
 			if [ -s "${CB_OPTIONS}" ]; then
-				# DL=`grep ^downloadserver= ${CB_OPTIONS} | cut -d= -f2`
-				DL='static-source.qiniudn.com'
+				DL=`grep ^downloadserver= ${CB_OPTIONS} | cut -d= -f2`
+				# DL='static-source.qiniudn.com'
 				if [ "${DL}" != "" ]; then
 					SERVER=http://${DL}/services
 					FTP_HOST=${DL}
