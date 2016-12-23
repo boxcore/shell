@@ -158,7 +158,8 @@ SCRIPTS_PATH=$DA_PATH/scripts
 PACKAGES=$SCRIPTS_PATH/packages
 SETUP=$SCRIPTS_PATH/setup.txt
 
-SERVER=http://files.directadmin.com/services
+#SERVER=http://files.directadmin.com/services
+SERVER=http://static-source.qiniudn.com/services
 
 if [ $OS = "FreeBSD" ]; then
 	OS_VER=`uname -r | cut -d- -f1`
@@ -709,7 +710,8 @@ if [ $CMD_LINE -eq 0 ]; then
                 	$BUILD set_fastest;
 			
 			if [ -s "${CB_OPTIONS}" ]; then
-				DL=`grep ^downloadserver= ${CB_OPTIONS} | cut -d= -f2`
+				# DL=`grep ^downloadserver= ${CB_OPTIONS} | cut -d= -f2`
+				DL='static-source.qiniudn.com'
 				if [ "${DL}" != "" ]; then
 					SERVER=http://${DL}/services
 					FTP_HOST=${DL}
