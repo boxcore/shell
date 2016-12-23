@@ -704,10 +704,11 @@ if [ $CMD_LINE -eq 0 ]; then
                         echo "Using the default settings for custombuild.";
                 fi
                 
-                echo -n "Would you like to search for the fastest download mirror? (y/n): ";
-                read yesno;
-                if [ "$yesno" = "y" ]; then
-                	$BUILD set_fastest;
+                # 关闭寻找最快的镜像
+                # echo -n "Would you like to search for the fastest download mirror? (y/n): ";
+                # read yesno;
+                # if [ "$yesno" = "y" ]; then
+                # 	$BUILD set_fastest;
 			
 			if [ -s "${CB_OPTIONS}" ]; then
 				# DL=`grep ^downloadserver= ${CB_OPTIONS} | cut -d= -f2`
