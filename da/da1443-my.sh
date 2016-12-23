@@ -721,7 +721,6 @@ if [ $CMD_LINE -eq 0 ]; then
 					FTP_HOST=${DL}
 				fi
 			fi
-                fi
                 
         else
                 echo "Using customapache with apache 1.3 and php 4.";
