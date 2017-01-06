@@ -16,7 +16,7 @@ read -p "Is add correct?(y or n)" ADD_STATUS
 
 echo "You setting is: ${ADD_STATUS}"
 
-if [[ "$ADD_STATUS" != 'y' || "$ADD_STATUS" != 'Y' ]];then
+if [[ "$ADD_STATUS" != "y" ]]; then
 echo "you don't setting nginx conf!exit!"
 exit
 fi
