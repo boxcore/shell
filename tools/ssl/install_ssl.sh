@@ -6,6 +6,21 @@ read -p "echo your domain:" SET_DOMAIN;
 echo "your setting is ${SET_DOMAIN}";
 #echo "your setting is ${SET_NAME}";
 
+echo "You should add this to your nginx conf before you run signed script:"
+echo "location ^~ /.well-known/acme-challenge/ {"
+echo "    alias /home/www/challenges/;"
+echo "    try_files $uri =404;"
+echo "}"
+
+read -p "Is add correct?(y or n)" ADD_STATUS
+
+echo "You setting is: ${ADD_STATUS}"
+
+if [[ "$ADD_STATUS" != 'y' || "$ADD_STATUS" != 'Y' ]];then
+echo "you don't setting nginx conf!exit!"
+exit
+fi
+
 
 #openssl genrsa 4096 > ${SET_DOMAIN}.key
 
@@ -52,10 +67,10 @@ EOF
 chmod +x renew_cert.sh
 
 echo "Your SSL DIR IN: /home/www/ssl/${SET_DOMAIN}/ And Dir Filse:"
-ls -l /home/www/ssl/${SET_DOMAIN}/
+ls /home/www/ssl/${SET_DOMAIN}/
 
 echo "You Should Add this setting to your nginx conf like this:"
-echo '=========================================================='
+echo '#=========================================================='
 
 echo "listen 443;"
 echo "ssl on;"
@@ -69,4 +84,12 @@ echo "ssl_stapling on; "
 echo "ssl_stapling_verify on; "
 echo "add_header Strict-Transport-Security \"max-age=31536000;includeSubDomains\";"
 
-echo '=========================================================='
+echo '#=========================================================='
+
+echo ""
+echo ""
+
+echo "Then add this to your crond (crontab -e ):"
+echo '#===================================================================='
+echo "0 0 2 * * /home/www/ssl/${SET_DOMAIN}/renew_cert.sh >/dev/null 2>&1"
+echo '#===================================================================='
