@@ -15,9 +15,22 @@
 yum install -y wget gcc gcc-c++ make gzip tar lrzsz screen git svn vim virt-what
 CUR_DIR=`pwd`
 
+function check_crond()
+{
+if command -v crontab >/dev/null 2>&1; then 
+echo 'crontab exist' 
+else
+echo 'crontab donot exist!' 
+yum install -y cronie
+chkconfig crond on
+/etc/init.d/crond restart
+fi
+}
+
 cd ~
 git clone https://github.com/boxcore/shell.git
 
+check_crond
 
 #RSAAuthentication yes
 #PubkeyAuthentication yes
