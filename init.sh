@@ -1,8 +1,16 @@
 #!/bin/bash
+#
+####################################
+#
+# My Linux install script
+#
+#-----------------------------------
 # for centos 5+
 # date:2016-12-27
+####################################
 
-yum install -y wget gcc gcc-c++ make gzip tar lrzsz screen git svn vim 
+yum install -y wget gcc gcc-c++ make gzip tar lrzsz screen git svn vim virt-what
+CUR_DIR=`pwd`
 
 cd ~
 git clone https://github.com/boxcore/shell.git
@@ -28,6 +36,10 @@ sed -i "s:# .bashrc:# .bashrc\nalias gst='git status':g" ~/.bashrc
 source ~/.bashrc
 cd ~/shell/
 gst
+
+# check if hk vps then run mount.sh
+/bin/bash ~/shell/tools/hk-mount.sh
+/bin/bash ~/shell/tools/hk-mount-check.sh
 
 /bin/bash ~/shell/shadowsocks/my-shadowsocks.sh
 
