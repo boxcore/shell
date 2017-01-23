@@ -8,7 +8,7 @@ echo "your setting is ${SET_DOMAIN}";
 
 echo "You should add this to your nginx conf before you run signed script:"
 echo "location ^~ /.well-known/acme-challenge/ {"
-echo "    alias /home/www/challenges/;"
+echo "    alias /home/www/ssl/${SET_DOMAIN}/challenges/;"
 echo "    try_files $uri =404;"
 echo "}"
 
