@@ -9,7 +9,7 @@ cd Python-3.5.2
 make && make install
 
 echo 'export PATH=$PATH:/usr/local/python3/bin' >> ~/.bashrc
-
+ln -s /usr/local/python3/bin/* /usr/local/bin/
 cd ~
 wget https://bootstrap.pypa.io/get-pip.py
 /usr/local/python3/bin/python3 get-pip.py
