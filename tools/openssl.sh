@@ -1,5 +1,6 @@
 #!/bin/bash
 # install newer openssl version for protect 0day bug
+# @link: http://www.cnblogs.com/nayu/p/5521486.html
 
 cd ~
 # mv /usr/local/bin/openssl /usr/local/bin/openssl.bak
