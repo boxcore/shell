@@ -12,6 +12,7 @@ autoconf
 ./configure
 make
 sudo make install
+cd ../
 rm -rf v2.11.0.tar.gz git-2.11.0
 #export PATH=$PATH:/usr/local/bin
 
