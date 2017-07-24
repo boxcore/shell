@@ -1,0 +1,754 @@
+#!/bin/bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+
+# Check if user is root
+if [ $(id -u) != "0" ]; then
+    echo "Error: You must be root to run this script!"
+    exit 1
+fi
+
+echo "+-------------------------------------------+"
+echo "|    Manager for LNMP, Written by Licess    |"
+echo "+-------------------------------------------+"
+echo "|              http://lnmp.org              |"
+echo "+-------------------------------------------+"
+
+PHPFPMPIDFILE=/usr/local/php/var/run/php-fpm.pid
+
+arg1=$1
+arg2=$2
+
+lnmp_start()
+{
+    echo "Starting LNMP..."
+    /etc/init.d/nginx start
+    /etc/init.d/mysql start
+    /etc/init.d/php-fpm start
+}
+
+lnmp_stop()
+{
+    echo "Stoping LNMP..."
+    /etc/init.d/nginx stop
+    /etc/init.d/mysql stop
+    /etc/init.d/php-fpm stop
+}
+
+lnmp_reload()
+{
+    echo "Reload LNMP..."
+    /etc/init.d/nginx reload
+    /etc/init.d/mysql reload
+    /etc/init.d/php-fpm reload
+}
+
+lnmp_kill()
+{
+    echo "Kill nginx,php-fpm,mysql process..."
+    killall nginx
+    killall mysqld
+    killall php-fpm
+    killall php-cgi
+    echo "done."
+}
+
+lnmp_status()
+{
+    /etc/init.d/nginx status
+    if [ -f $PHPFPMPIDFILE ]; then
+        echo "php-fpm is runing!"
+    else
+        echo "php-fpm is stop!"
+    fi
+    /etc/init.d/mysql status
+}
+
+Function_Vhost()
+{
+    case "$1" in
+    [aA][dD][dD])
+        Add_VHost
+        ;;
+    [lL][iI][sS][tT])
+        List_VHost
+        ;;
+    [dD][eE][lL])
+        Del_VHost
+        ;;
+    [eE][xX][iI][tT])
+        exit 1
+        ;;
+    *)
+        echo "Usage: lnmp vhost {add|list|del}"
+        exit 1
+    ;;
+esac
+}
+
+Function_Database()
+{
+    case "$1" in
+    [aA][dD][dD])
+        Add_Database_Menu
+        Add_Database
+        ;;
+    [lL][iI][sS][tT])
+        List_Database
+        ;;
+    [dD][eE][lL])
+        Del_Database
+        ;;
+    [eE][dD][iI][tT])
+        Edit_Database
+        ;;
+    [eE][xX][iI][tT])
+        exit 1
+        ;;
+    *)
+        echo "Usage: lnmp mysql {add|list|del}"
+        exit 1
+        ;;
+esac
+}
+
+Function_Ftp()
+{
+    case "$1" in
+    [aA][dD][dD])
+        Add_Ftp_Menu
+        Add_Ftp
+        ;;
+    [lL][iI][sS][tT])
+        List_Ftp
+        ;;
+    [dD][eE][lL])
+        Del_Ftp
+        ;;
+	[eE][dD][iI][tT])
+        Edit_Ftp
+	       ;;
+    [eE][xX][iI][tT])
+        exit 1
+        ;;
+    *)
+        echo "Usage: lnmp ftp {add|list|del}"
+        exit 1
+        ;;
+esac
+}
+
+Add_SSL()
+{
+    SET_DOMAIN=$1
+
+    echo "Your setting SSL domain is: ${domain}"
+    mkdir -pv /home/www/ssl/${SET_DOMAIN}/challenges/ && chown www:www -R /home/www/ssl/${SET_DOMAIN}
+    cd /home/www/ssl/${SET_DOMAIN}/
+
+    openssl genrsa 4096 > account.key
+
+    openssl genrsa 4096 > ${SET_DOMAIN}.key
+    openssl req -new -sha256 -key ${SET_DOMAIN}.key -nodes -out ${SET_DOMAIN}.csr -subj "/C=CN/ST=GuangZhou/L=GuangZhou/O=LKS Inc./OU=Web Security/CN=${SET_DOMAIN}"
+
+    python3 /root/shell/tools/ssl/acme_tiny.py --account-key ./account.key --csr ./${SET_DOMAIN}.csr --acme-dir /home/www/ssl/${SET_DOMAIN}/challenges/ > ./signed.crt
+
+    wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > intermediate.pem
+    cat signed.crt intermediate.pem > chained.pem
+    wget -O - https://letsencrypt.org/certs/isrgrootx1.pem > root.pem
+    cat intermediate.pem root.pem > full_chained.pem
+cat >>renew_cert.sh<<EOF
+#!/bin/bash
+
+cd /home/www/ssl/${SET_DOMAIN}/
+python3 acme_tiny.py --account-key account.key --csr ${SET_DOMAIN}.csr --acme-dir /home/www/ssl/${SET_DOMAIN}/challenges/ > signed.crt || exit
+wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > intermediate.pem
+cat signed.crt intermediate.pem > chained.pem
+service nginx reload
+EOF
+
+chmod +x renew_cert.sh
+
+
+}
+
+Add_VHost()
+{
+    domain=""
+    read -p "Please enter domain(example: www.lnmp.org): " domain
+    if [ "${domain}" = "" ]; then
+        echo "No enter,domain name can't be empty."
+        exit 1
+    fi
+    if [ ! -f "/usr/local/nginx/conf/vhost/${domain}.conf" ]; then
+        echo "======================================"
+        echo " Your domain: ${domain}"
+        echo "======================================"
+    else
+        echo "==============================="
+        echo "${domain} is exist!"
+        echo "==============================="
+    fi
+
+    read -p "Do you want to add more domain name? (y/n) " add_more_domainame
+
+    if [ "${add_more_domainame}" == "y" ]; then
+
+        read -p "Enter domain name(example: lnmp.org *.lnmp.org): " moredomain
+        echo "domain list: ${moredomain}"
+        moredomainame=" ${moredomain}"
+    fi
+
+    read -p "Do you want to add SSL to default domain name? (y/n) " add_domainame_ssl
+    do_add_domainame_ssl=0
+    if [ "${add_domainame_ssl}" == "y" ]; then
+
+        echo "domain list: ${domain}"
+        do_add_domainame_ssl=1
+    fi
+
+    vhostdir="/home/wwwroot/${domain}"
+    echo "Please enter the directory for the domain: $domain"
+    read -p "(Default directory: /home/wwwroot/${domain}): " vhostdir
+    if [ "${vhostdir}" = "" ]; then
+        vhostdir="/home/wwwroot/${domain}"
+    fi
+    echo "Virtual Host Directory: ${vhostdir}"
+
+    echo "==========================="
+    echo "Allow Rewrite rule? (y/n)"
+    echo "==========================="
+    read allow_rewrite
+
+    if [ "${allow_rewrite}" == "n" ]; then
+        rewrite="none"
+    else
+        rewrite="other"
+        echo "Please enter the rewrite of programme: "
+        echo "wordpress,discuz,typecho,sablog,dabr rewrite was exist."
+        read -p "(Default rewrite: other):" rewrite
+        if [ "${rewrite}" = "" ]; then
+            rewrite="other"
+        fi
+    fi
+    echo "==========================="
+    echo "You choose rewrite=${rewrite}"
+    echo "==========================="
+
+    echo "==========================="
+    echo "Allow access_log? (y/n)"
+    echo "==========================="
+    read access_log
+
+    if [ "${access_log}" == "n" ]; then
+        al="access_log off;"
+    else
+        read -p "Enter access log name(Default access log file:${domain}.log): " al_name
+        if [ "${al_name}" = "" ]; then
+            al_name="${domain}"
+        fi
+        al="access_log  /home/wwwlogs/${al_name}.log;"
+
+    echo "You access log filename: ${al_name}.log"
+    fi
+
+    echo "======================================================"
+    echo "Create database and MySQL user with same name (y/n)"
+    echo "======================================================"
+    read create_database
+
+    if [ "${create_database}" == "y" ]; then
+        Verify_DB_Password
+        Add_Database_Menu
+    fi
+
+
+    if [ -f /usr/local/pureftpd/sbin/pure-config.pl ]; then
+        echo "======================================================"
+        echo "Create ftp account (y/n)"
+        echo "======================================================"
+        read create_ftp
+
+        if [ "${create_ftp}" == "y" ]; then
+            Add_Ftp_Menu
+        fi
+    fi
+
+    echo ""
+    echo "Press any key to start create virtul host..."
+    OLDCONFIG=`stty -g`
+    stty -icanon -echo min 1 time 0
+    dd count=1 2>/dev/null
+    stty ${OLDCONFIG}
+
+    echo "Create Virtul Host directory......"
+    mkdir -p ${vhostdir}
+    if [ "${access_log}" == "n" ]; then
+        touch /home/wwwlogs/${al_name}.log
+    fi
+    echo "set permissions of Virtual Host directory......"
+    chmod -R 755 ${vhostdir}
+    chown -R www:www ${vhostdir}
+
+    if [ ! -f /usr/local/nginx/conf/${rewrite}.conf ]; then
+        echo "Create Virtul Host Rewrite file......"
+        touch /usr/local/nginx/conf/${rewrite}.conf
+        echo "Create rewirte file successful,You can add rewrite rule into /usr/local/nginx/conf/${rewrite}.conf."
+    else
+        echo "You select the exist rewrite rule:/usr/local/nginx/conf/${rewrite}.conf"
+    fi
+
+    cat >/usr/local/nginx/conf/vhost/${domain}.conf<<EOF
+server
+    {
+        listen 80;
+        #listen [::]:80;
+        server_name ${domain}${moredomainame};
+        index index.html index.htm index.php default.html default.htm default.php;
+        root  ${vhostdir};
+
+        include ${rewrite}.conf;
+        #error_page   404   /404.html;
+        include enable-php.conf;
+
+        location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+        {
+            expires      30d;
+        }
+
+        location ~ .*\.(js|css)?$
+        {
+            expires      12h;
+        }
+
+        location ~ /\.
+        {
+            deny all;
+        }
+
+        ${al}
+    }
+EOF
+
+if [ $do_add_domainame_ssl == 1 ]; then
+    echo "run ssl!"
+cat >> /usr/local/nginx/conf/vhost/${domain}.conf<<EOF
+server
+    {
+        listen                      443 ssl;
+        server_name ${domain};
+        ssl_certificate             /home/www/ssl/${domain}/${domain}.crt;
+        ssl_certificate_key         /home/www/ssl/${domain}/${domain}.key;
+
+        ssl_protocols               TLSv1.2 TLSv1.1 TLSv1;
+        ssl_ciphers                 EXAP:HIGH:!aNULL:!MD5;
+
+        ssl_prefer_server_ciphers   on;
+        ssl_stapling                on;
+        ssl_stapling_verify         on;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains;preload" always;
+
+        index index.html index.htm index.php default.html default.htm default.php;
+        root  ${vhostdir};
+
+        include ${rewrite}.conf;
+        include enable-php.conf;
+
+        location ^~ /.well-known/acme-challenge/ {
+            alias /home/www/ssl/${domain}/challenges/;
+            try_files $uri =404;
+        }
+
+        location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+        {
+            expires      30d;
+        }
+
+        location ~ .*\.(js|css)?$
+        {
+            expires      12h;
+        }
+
+        location ~ /\.
+        {
+            deny all;
+        }
+
+        ${al}
+    }
+EOF
+
+fi
+
+    cat >${vhostdir}/.user.ini<<EOF
+open_basedir=${vhostdir}:/tmp/:/proc/
+EOF
+chmod 644 ${vhostdir}/.user.ini
+chattr +i ${vhostdir}/.user.ini
+
+    /etc/init.d/php-fpm restart
+
+    echo "Test Nginx configure file......"
+    /usr/local/nginx/sbin/nginx -t
+    echo ""
+    echo "Restart Nginx......"
+    /usr/local/nginx/sbin/nginx -s reload
+
+    if [ $do_add_domainame_ssl == 1 ]; then
+        echo "run ssl reg!"
+        Add_SSL ${domain}
+        echo "Restart Nginx......"
+        /usr/local/nginx/sbin/nginx -s reload
+    fi
+
+    if [ "${create_database}" == "y" ]; then
+        Add_Database
+    fi
+
+    if [ "${create_ftp}" == "y" ]; then
+        Add_Ftp
+    fi
+
+    echo "================================================"
+    echo "Virtualhost infomation:"
+    echo "Your domain: ${domain}"
+    echo "Home Directory: ${vhostdir}"
+    echo "Rewrite: ${rewrite}"
+    if [ "${access_log}" = "n" ]; then
+        echo "Enable log: no"
+    else
+        echo "Enable log: yes"
+    fi
+    if [ "${create_database}" = "y" ]; then
+        echo "Database username: ${database_name}"
+        echo "Database userpassword: ${mysql_password}"
+        echo "Database Name: ${database_name}"
+    else
+        echo "Create database: no"
+    fi
+    if [ "${create_ftp}" = "y" ]; then
+        echo "FTP account name: ${ftp_account_name}"
+        echo "FTP account password: ${ftp_account_password}"
+    else
+        echo "Create ftp account: no"
+    fi
+    echo "================================================"
+}
+
+List_VHost()
+{
+    echo "Nginx Virtualhost list:"
+    ls /usr/local/nginx/conf/vhost/ | grep ".conf$" | sed 's/.conf//g'
+}
+
+Del_VHost()
+{
+    echo "======================================="
+    echo "Current Virtualhost:"
+    List_VHost
+    echo "======================================="
+    domain=""
+    read -p "Please enter domain you want to delete: " domain
+    if [ "${domain}" = "" ]; then
+        echo "No enter,domain name can't be empty."
+        exit 1
+    fi
+    if [ ! -f "/usr/local/nginx/conf/vhost/${domain}.conf" ]; then
+        echo "=========================================="
+        echo "Domain: ${domain} was not exist!"
+        echo "=========================================="
+        exit 1
+    else
+        rm -f /usr/local/nginx/conf/vhost/${domain}.conf
+        echo "========================================================"
+        echo "Domain: ${domain} has been deleted."
+        echo "Website files will not be deleted for security reasons."
+        echo "You need to manually delete the website files."
+        echo "========================================================"
+    fi
+}
+
+Check_DB()
+{
+    if [[ -s /usr/local/mariadb/bin/mysql && -s /usr/local/mariadb/bin/mysqld_safe && -s /etc/my.cnf ]]; then
+        MySQL_Bin="/usr/local/mariadb/bin/mysql"
+    else
+        MySQL_Bin="/usr/local/mysql/bin/mysql"
+    fi
+}
+
+Make_TempMycnf()
+{
+    cat >~/.my.cnf<<EOF
+[client]
+user=root
+password='$1'
+EOF
+}
+
+Verify_DB_Password()
+{
+    Check_DB
+    status=1
+    while [ $status -eq 1 ]; do
+        stty -echo
+        echo "Enter current root password of Database (Password will not shown): "
+        read DB_Root_Password
+        echo
+        stty echo
+        Make_TempMycnf "${DB_Root_Password}"
+        Do_Query ""
+        status=$?
+    done
+    echo "OK, MySQL root password correct."
+}
+
+Do_Query()
+{
+    echo "$1" >/tmp/.mysql.tmp
+    Check_DB
+    ${MySQL_Bin} --defaults-file=~/.my.cnf </tmp/.mysql.tmp
+    return $?
+}
+
+TempMycnf_Clean()
+{
+    if [ -s ~/.my.cnf ]; then
+        rm -f ~/.my.cnf
+    fi
+    if [ -s /tmp/.mysql.tmp ]; then
+        rm -f /tmp/.mysql.tmp
+    fi
+}
+
+Enter_Database_Name()
+{
+    read -p "Enter database name: " database_name
+    if [ "${database_name}" = "" ]; then
+        echo "Database Name can't be empty!"
+        exit 1
+    fi
+}
+
+Add_Database_Menu()
+{
+    Enter_Database_Name
+    echo "Your will create a database and MySQL user with same name: ${database_name}"
+    read -p "Please enter password for mysql user ${database_name}: " mysql_password
+    echo "Your password: ${mysql_password} "
+}
+
+Add_Database()
+{
+    cat >/tmp/.add_mysql.sql<<EOF
+CREATE USER '${database_name}'@'localhost' IDENTIFIED BY '${mysql_password}';
+CREATE USER '${database_name}'@'127.0.0.1' IDENTIFIED BY '${mysql_password}';
+GRANT USAGE ON *.* TO '${database_name}'@'localhost' IDENTIFIED BY '${mysql_password}';
+GRANT USAGE ON *.* TO '${database_name}'@'127.0.0.1' IDENTIFIED BY '${mysql_password}';
+CREATE DATABASE IF NOT EXISTS \`${database_name}\`;
+GRANT ALL PRIVILEGES ON \`${database_name}\`.* TO '${database_name}'@'localhost';
+GRANT ALL PRIVILEGES ON \`${database_name}\`.* TO '${database_name}'@'127.0.0.1';
+FLUSH PRIVILEGES;
+EOF
+    ${MySQL_Bin} --defaults-file=~/.my.cnf < /tmp/.add_mysql.sql
+    [ $? -eq 0 ] && echo "Add database Sucessfully." || echo "Add database failed!"
+    rm -f /tmp/.add_mysql.sql
+}
+
+List_Database()
+{
+    ${MySQL_Bin} --defaults-file=~/.my.cnf -e "SHOW DATABASES;"
+    [ $? -eq 0 ] && echo "List all databases Sucessfully." || echo "List all databases failed!"
+}
+
+Edit_Database()
+{
+    read -p "Enter database username: " database_username
+    if [ "${database_username}" = "" ]; then
+        echo "Database Username can't be empty!"
+        exit 1
+    fi
+    read -p "Enter NEW Password: " database_username_passwd
+    if [ "${database_username_passwd}" = "" ]; then
+        echo "Database Password can't be empty!"
+        exit 1
+    fi
+    Do_Query "UPDATE mysql.user SET Password=PASSWORD('${database_username_passwd}') WHERE User='${database_username}' AND Host IN ('localhost', '127.0.0.1', '::1');"
+    [ $? -eq 0 ] && echo "Edit user password Sucessfully." || echo "Edit user password databases failed!"
+    Do_Query "FLUSH PRIVILEGES;"
+}
+
+Del_Database()
+{
+    List_Database
+    Enter_Database_Name
+    if [[ "${database_name}" = "information_schema" || "${database_name}" = "mysql" || "${database_name}" = "performance_schema" ]]; then
+        echo "MySQL System Database can't be delete!"
+        exit 1
+    fi
+    echo "Your will delete database and MySQL user with same name: ${database_name}"
+    echo "Sleep 10s, Press ctrl+c to cancel..."
+    sleep 10
+    cat >/tmp/.del.mysql.sql<<EOF
+DROP USER '${database_name}'@'127.0.0.1';
+DROP USER '${database_name}'@'localhost';
+DROP DATABASE \`${database_name}\`;
+FLUSH PRIVILEGES;
+EOF
+    ${MySQL_Bin} --defaults-file=~/.my.cnf < /tmp/.del.mysql.sql
+    [ $? -eq 0 ] && echo "Delete database: ${database_name} Sucessfully." || echo "Delete database: ${database_name} failed!"
+    rm -f /tmp/.del.mysql.sql
+}
+
+Enter_Ftp_Name()
+{
+    read -p "Enter ftp account name: " ftp_account_name
+    if [ "${ftp_account_name}" = "" ]; then
+        echo "FTP account name can't be empty!"
+        exit 1
+    fi
+}
+
+Add_Ftp_Menu()
+{
+    Enter_Ftp_Name
+    read -p "Enter password for ftp account ${ftp_account_name}: " ftp_account_password
+    if [ "${ftp_account_password}" = "" ]; then
+        echo "FTP password can't be empty!"
+        exit 1
+    fi
+    if [ "${vhostdir}" = "" ]; then
+        read -p "Enter directory for ftp account ${ftp_account_name}: " vhostdir
+        if [ "${vhostdir}" = "" ]; then
+            echo "Directory can't be empty!"
+            exit 1
+        fi
+    fi
+}
+
+Check_Pureftpd()
+{
+    if [ ! -f /usr/local/pureftpd/sbin/pure-config.pl ]; then
+        echo "Pureftpd was not installed!"
+        exit 1
+    fi
+}
+
+Add_Ftp()
+{
+    www_uid=`id -u www`
+    www_gid=`id -g www`
+	cat >/tmp/pass${ftp_account_name}<<EOF
+${ftp_account_password}
+${ftp_account_password}
+EOF
+	/usr/local/pureftpd/bin/pure-pw useradd ${ftp_account_name} -f /usr/local/pureftpd/etc/pureftpd.passwd -u ${www_uid} -g ${www_gid} -d ${vhostdir} -m < /tmp/pass${ftp_account_name}
+    [ $? -eq 0 ] && echo "Created FTP User: ${ftp_account_name} Sucessfully." || echo "FTP User: ${ftp_account_name} already exists!"
+	rm -f /tmp/pass${ftp_account_name}
+}
+
+List_Ftp()
+{
+    /usr/local/pureftpd/bin/pure-pw list -f /usr/local/pureftpd/etc/pureftpd.passwd
+    [ $? -eq 0 ] && echo "List FTP User Sucessfully." || echo "Read database failed."
+}
+
+Edit_Ftp()
+{
+    List_Ftp
+    Enter_Ftp_Name
+    read -p "Enter password for ftp account ${ftp_account_name}: " ftp_account_password
+    if [ "${ftp_account_password}" != "" ]; then
+		cat >/tmp/pass${ftp_account_name}<<EOF
+${ftp_account_password}
+${ftp_account_password}
+EOF
+		/usr/local/pureftpd/bin/pure-pw passwd ${ftp_account_name} -f /usr/local/pureftpd/etc/pureftpd.passwd -m < /tmp/pass${ftp_account_name}
+		[ $? -eq 0 ] && echo "FTP User: ${ftp_account_name} change password Sucessfully." || echo "FTP User: ${ftp_account_name} change password failed!"
+		rm -f /tmp/pass${ftp_account_name}
+	else
+        echo "FTP password will no change."
+    fi
+    read -p "Enter directory for ftp account ${ftp_account_name}: " vhostdir
+	if [ "${vhostdir}" != "" ]; then
+	    www_uid=`id -u www`
+		www_gid=`id -g www`
+		/usr/local/pureftpd/bin/pure-pw usermod ${ftp_account_name} -f /usr/local/pureftpd/etc/pureftpd.passwd -u ${www_uid} -g ${www_gid} -d ${vhostdir} -m
+		[ $? -eq 0 ] && echo "FTP User: ${ftp_account_name} change diretcory Sucessfully." || echo "FTP User: ${ftp_account_name} change directory failed!"
+	else
+        echo "Directory will no change."
+    fi
+}
+
+Del_Ftp()
+{
+    List_Ftp
+    Enter_Ftp_Name
+    echo "Your will delete ftp user ${ftp_account_name}"
+    echo "Sleep 10s,Press ctrl+c to cancel..."
+    sleep 10
+    /usr/local/pureftpd/bin/pure-pw userdel ${ftp_account_name} -f /usr/local/pureftpd/etc/pureftpd.passwd -m
+    [ $? -eq 0 ] && echo "FTP User: ${ftp_account_name} deleted Sucessfully." || echo "FTP User: ${ftp_account_name} not exists!"
+}
+
+Check_DB
+
+case "${arg1}" in
+    start)
+        lnmp_start
+        ;;
+    stop)
+        lnmp_stop
+        ;;
+    restart)
+        lnmp_stop
+        lnmp_start
+        ;;
+    reload)
+        lnmp_reload
+        ;;
+    kill)
+        lnmp_kill
+        ;;
+    status)
+        lnmp_status
+        ;;
+    nginx)
+        /etc/init.d/nginx ${arg2}
+        ;;
+    mysql)
+        /etc/init.d/mysql ${arg2}
+        ;;
+    mariadb)
+        /etc/init.d/mariadb ${arg2}
+        ;;
+    php-fpm)
+        /etc/init.d/php-fpm ${arg2}
+        ;;
+    pureftpd)
+        /etc/init.d/pureftpd ${arg2}
+        ;;
+    httpd)
+        /etc/init.d/httpd ${arg2}
+        ;;
+    vhost)
+        Function_Vhost ${arg2}
+        ;;
+    database)
+        Verify_DB_Password
+        Function_Database ${arg2}
+        TempMycnf_Clean
+        ;;
+    ftp)
+        Check_Pureftpd
+        Function_Ftp ${arg2}
+        ;;
+    *)
+        echo "Usage: lnmp {start|stop|reload|restart|kill|status}"
+        echo "Usage: lnmp {nginx|mysql|mariadb|php-fpm|pureftpd} {start|stop|reload|restart|kill|status}"
+        echo "Usage: lnmp vhost {add|list|del}"
+        echo "Usage: lnmp database {add|list|edit|del}"
+        echo "Usage: lnmp ftp {add|list|edit|del}"
+esac
+exit

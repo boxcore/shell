@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #/bin/bash
 chmod +x shadowsocks-go.sh
 /bin/bash ./my-shadowsocks-go.sh 2>&1 | tee shadowsocks-go.log
