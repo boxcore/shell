@@ -6,14 +6,13 @@ read -p "echo your domain:" SET_DOMAIN;
 echo "your setting is ${SET_DOMAIN}";
 #echo "your setting is ${SET_NAME}";
 
-read -p "Setting the ssl Dir: (defaul as ${SET_SSLDIR})" SET_SSLDIR
+read -p "Setting the ssl Dir: (defaul as /home/wwwroot/ssl/${SET_DOMAIN})" SET_SSLDIR
 
 if [[ "$SET_SSLDIR" == "" ]]; then
-SET_SSLDIR="${SET_SSLDIR}"
+SET_SSLDIR="/home/wwwroot/ssl/${SET_DOMAIN}"
 fi
 
 echo "Your SSL DIR is ${SET_SSLDIR}"
-exit
 
 echo "You should add this to your nginx conf before you run signed script:"
 echo "location ^~ /.well-known/acme-challenge/ {"
