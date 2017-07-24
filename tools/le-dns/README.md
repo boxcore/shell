@@ -25,6 +25,12 @@ server
 }
 ```
 
+how to renew ssl?
+
+just add crond for:
+
+> 0 0 25 * * /home/wwwroot/ssl/ls-dns/le-dnspod.sh /home/wwwroot/ssl/ls-dns/dnspod.conf >> /var/log/le-dnspod.log 2>&1
+
 ----
 
 
