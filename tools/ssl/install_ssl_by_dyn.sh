@@ -1,4 +1,5 @@
 #!/bin/bash
+# TODO: 未完成，已经有新的替代工具处理
 
 read -p "echo your domain:" SET_DOMAIN;
 #read -p "echo your domain:" SET_NAME;
@@ -33,7 +34,13 @@ fi
 #openssl genrsa 4096 > www.key
 #rm -rf  ${SET_SSLDIR}/
 mkdir -pv ${SET_SSLDIR}/challenges/ && chown www:www -R ${SET_SSLDIR}
+cat >>${SET_SSLDIR}/challenges/test.html<<EOF
+Hello.
+EOF
+echo "gen file ok, you can explore: http://${SET_DOMAIN}/.well-known/acme-challenge/test.html to see echo 'Hello.', \nIf no, you can gen it by youself!"
+sleep 2
 cd ${SET_SSLDIR}/
+
 
 openssl genrsa 4096 > account.key
 
@@ -44,6 +51,13 @@ openssl genrsa 4096 > account.key
 # 方式2
 openssl genrsa 4096 > www.key
 openssl req -new -sha256 -key www.key -nodes -out www.csr -subj "/C=CN/ST=GuangZhou/L=GuangZhou/O=LKS Inc./OU=Web Security/CN=${SET_DOMAIN}"
+# openssl req -new -sha256 -key www.key -nodes -out www.csr -subj "/C=CN/ST=GuangZhou/L=GuangZhou/O=LKS Inc./OU=Web Security" -reqexts SAN -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:mianfeibang.cn,DNS:www.mianfeibang.cn,DNS:ssl.mianfeibang.cn"))
+
+# #for a single domain
+# openssl req -new -sha256 -key domain.key -subj "/CN=yoursite.com" > domain.csr
+
+# #for multiple domains (use this one if you want both www.yoursite.com and yoursite.com)
+# openssl req -new -sha256 -key domain.key -subj "/" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:yoursite.com,DNS:www.yoursite.com")) > domain.csr
 
 
 # 方式3

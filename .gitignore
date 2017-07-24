@@ -1,2 +1,4 @@
 .idea
 *.log
+.vscode/tags
+tmp/
