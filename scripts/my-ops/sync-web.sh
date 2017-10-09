@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-SYNC_DIR='/www/37'
-REMOTE_DIR='/www/37test'
+SYNC_DIR='/www/test'
+REMOTE_DIR='/www/1test'
 
 REMOTE_IP=$1
 if [ ! -n "$REMOTE_IP" ]; then
