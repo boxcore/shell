@@ -18,3 +18,8 @@ boxcore个人linux工具箱, 用于便捷管理linux服务器. 本工具均在ce
 Modify History
 ------------------
 - 2015-08-16 remove x
+
+
+### 目录说明
+
+* [sync同步配置脚本](scripts/my-ops/sync-web.sh)
