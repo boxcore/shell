@@ -20,6 +20,15 @@ Modify History
 - 2015-08-16 remove x
 
 
+## 使用说明
+
+### 初始安装
+
+```bash
+curl -o 'init.sh' https://raw.githubusercontent.com/boxcore/shell/master/init.sh && chmod +x init.sh && ./init.sh
+```
+
+
 ### 目录说明
 
 * [sync同步配置脚本](scripts/my-ops/sync-web.sh)

@@ -53,12 +53,12 @@ source ~/.bashrc
 cd ~/shell/
 gst
 
-/bin/bash ~/shell/shadowsocks/my-shadowsocks.sh
+#/bin/bash ~/shell/shadowsocks/my-shadowsocks.sh
 
 /bin/bash ~/shell/tools/iftop.sh
 /bin/bash ~/shell/tools/rar.sh
 
 # check if hk vps then run mount.sh
-/bin/bash ~/shell/tools/hk-mount.sh
-/bin/bash ~/shell/tools/hk-mount-check.sh
+#/bin/bash ~/shell/tools/hk-mount.sh
+#/bin/bash ~/shell/tools/hk-mount-check.sh
 
