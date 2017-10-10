@@ -38,6 +38,7 @@ for line in `cat ${CONF_FILE}`; do
     echo "sync ok"
         else 
             if [ -n $REMOTE_FORCE_RUN ]; then 
+                echo "You are runing remote force create mode!"
                 ssh -p ${REMOTE_PORT} www@${REMOTE_IP} "mkdir -pv ${REMOTE_DIR_NAME} && exit"
                 if [ $? -eq 0 ];then 
                     echo "Remote dir create success!";
