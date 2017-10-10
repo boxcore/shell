@@ -1,4 +1,8 @@
 #!/bin/bash
+# usage: /bin/bash ./sync-web.sh HOST {PORT} {1}
+# param 0: remote ip
+# param 1: PORT, defaul value = 22
+# param 2: if force create remote dir, defalut false
 
 SYNC_DIR='/home/wwwroot'
 REMOTE_DIR='/home/wwwroot'
