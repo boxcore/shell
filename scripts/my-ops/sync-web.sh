@@ -18,11 +18,6 @@ CUR_DIR=`dirname $0`
 CONF_FILE=$CUR_DIR'/sync-web.ini'
 if [ ! -f "$CONF_FILE" ]; then echo " File '$CONF_FILE' don't exist!";exit;fi
 
-SYNC_ACTION()
-{
-    /usr/bin/rsync "-e ssh -p ${REMOTE_PORT}" --compress --recursive --times --perms --owner --group --links  ${LOCAL_DIR_NAME}/ www@${REMOTE_IP}:${REMOTE_DIR_NAME}/
-    echo "sync ok"
-}
 
 # cat $CONF_FILE | while read line
 for line in `cat ${CONF_FILE}`; do
@@ -39,11 +34,18 @@ for line in `cat ${CONF_FILE}`; do
         ssh -p ${REMOTE_PORT} www@${REMOTE_IP} "du -sh ${REMOTE_DIR_NAME} && exit" 
         if [ $? -eq 0 ];then 
             echo "Remote DIR check ok: ${REMOTE_DIR_NAME}" ;
-            SYNC_ACTION
+            /usr/bin/rsync "-e ssh -p ${REMOTE_PORT}" --compress --recursive --times --perms --owner --group --links  ${LOCAL_DIR_NAME}/ www@${REMOTE_IP}:${REMOTE_DIR_NAME}/
+    echo "sync ok"
         else 
             if [ -n $REMOTE_FORCE_RUN ]; then 
                 ssh -p ${REMOTE_PORT} www@${REMOTE_IP} "mkdir -pv ${REMOTE_DIR_NAME} && exit"
-                if [ $? -eq 0 ];then echo "Remote dir create success!";SYNC_ACTION; else echo "Remote dir create fail!"; fi
+                if [ $? -eq 0 ];then 
+                    echo "Remote dir create success!";
+                    /usr/bin/rsync "-e ssh -p ${REMOTE_PORT}" --compress --recursive --times --perms --owner --group --links  ${LOCAL_DIR_NAME}/ www@${REMOTE_IP}:${REMOTE_DIR_NAME}/
+                    echo "sync ok" 
+                else
+                    echo "Remote dir create fail!"; 
+                fi
             else
                 echo "Remote DIR '${REMOTE_DIR_NAME}' don't exit, jumpped!";
             fi
