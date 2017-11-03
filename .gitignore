@@ -3,3 +3,4 @@
 .vscode/tags
 tmp/
 .vscode/
+.DS_Store
