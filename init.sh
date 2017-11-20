@@ -12,7 +12,7 @@
 # date:2016-12-27
 ####################################
 
-yum install -y wget gcc gcc-c++ make gzip tar lrzsz screen git svn vim virt-what
+yum install -y wget gcc gcc-c++ make gzip tar lrzsz screen git svn vim virt-what expect tree
 CUR_DIR=`pwd`
 
 function check_crond()
