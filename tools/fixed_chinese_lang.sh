@@ -21,3 +21,6 @@ LANG=en_US.UTF-8
 LANG=C
 SYSFONT=latarcyrheb-sun16
 ```
+
+# 重新载入
+. /etc/profile
