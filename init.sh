@@ -47,7 +47,7 @@ chmod 600 ~/.ssh/authorized_keys
 /bin/bash ~/shell/tools/hk-mount.sh
 
 yum remove -y git
-/bin/bash ~/shell/git.sh
+/bin/bash ~/scripts/cvs/git.sh
 sed -i "s:# .bashrc:# .bashrc\nalias gst='git status':g" ~/.bashrc
 source ~/.bashrc
 cd ~/shell/

@@ -15,6 +15,21 @@ boxcore个人linux工具箱, 用于便捷管理linux服务器. 本工具均在ce
 - update_resource.sh 修改yum原
 - vhost.sh lnmp添加虚拟主机
 
+## 扩展脚本(/scripts)
+
+
+- 安装Python3: `./scripts/python/python3_install.sh`
+- 测速工具：`python3 ./scripts/python/speedtest_cli.py`
+
+
+### 版本管理
+- `./scripts/cvs/svn.sh`: 编译安装svn，v1.9
+- `./scripts/cvs/git.sh`: 编译安装git
+
+### 开发中脚本(不稳定)
+- `./scripts/dev/`
+
+
 Modify History
 ------------------
 - 2015-08-16 remove x
