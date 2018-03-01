@@ -2,6 +2,8 @@
 #########################################
 #Function:    install lnmp
 #Usage:       bash lnmp.sh
+# 很早以前写的lnmp部署脚本，已经不维护，仅供测试用！
+# 
 #website:     lnmp.boxcore.org
 #Version:     0.1
 #########################################

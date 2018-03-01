@@ -27,7 +27,7 @@ boxcore个人linux工具箱, 用于便捷管理linux服务器. 本工具均在ce
 - `./scripts/cvs/git.sh`: 编译安装git
 
 ### 开发中脚本(不稳定)
-- `./scripts/dev/`
+开发中的脚本均放在目录`./scripts/dev/`下，内容有：
 
 
 Modify History
